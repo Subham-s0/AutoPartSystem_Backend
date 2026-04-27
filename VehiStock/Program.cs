@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using VehiStock.Entities;
+using VehiStock.Infrastructure;
 using VehiStock.Infrastructure.Persistance;
+using VehiStock.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,10 +70,13 @@ if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(goo
 builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
+builder.Services.AddInfrastructureServices();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+await app.Services.EnsureRolesCreatedAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
