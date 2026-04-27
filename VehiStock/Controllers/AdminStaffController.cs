@@ -6,6 +6,7 @@ using VehiStock.Application.Interfaces.IServices;
 
 namespace VehiStock.Controllers;
 
+// Used for auth management endpoints
 [ApiController]
 [Route("api/admin/staff")]
 [Authorize(Roles = RoleNames.Admin)]

@@ -1,12 +1,12 @@
-using Microsoft.EntityFrameworkCore;
 using VehiStock.Application.DTOs.SalesInvoices;
+using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Entities;
-using VehiStock.Infrastructure.Persistance;
 
 namespace VehiStock.Infrastructure.Services;
 
-public class SalesInvoiceService(ApplicationDbContext dbContext) : ISalesInvoiceService
+// Implementation for invoice generation
+public class SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository) : ISalesInvoiceService
 {
     public async Task<SalesInvoiceDto> CreateSalesInvoiceAsync(CreateSalesInvoiceRequest request, CancellationToken cancellationToken = default)
     {
@@ -15,30 +15,22 @@ public class SalesInvoiceService(ApplicationDbContext dbContext) : ISalesInvoice
             throw new InvalidOperationException("At least one sales invoice item is required.");
         }
 
-        var duplicateInvoice = await dbContext.SalesInvoices
-            .AnyAsync(x => x.InvoiceNo == request.InvoiceNo, cancellationToken);
-
-        if (duplicateInvoice)
+        if (await salesInvoiceRepository.SalesInvoiceExistsAsync(request.InvoiceNo, cancellationToken))
         {
             throw new InvalidOperationException("A sales invoice with this invoice number already exists.");
         }
 
-        var customer = await dbContext.CustomerProfiles
-            .FirstOrDefaultAsync(x => x.CustomerId == request.CustomerId, cancellationToken)
+        var customer = await salesInvoiceRepository.GetCustomerAsync(request.CustomerId, cancellationToken)
             ?? throw new KeyNotFoundException("Customer was not found.");
 
-        var vehicle = await dbContext.Vehicles
-            .FirstOrDefaultAsync(x => x.VehicleId == request.VehicleId && x.CustomerId == request.CustomerId, cancellationToken)
+        var vehicle = await salesInvoiceRepository.GetVehicleForCustomerAsync(request.VehicleId, request.CustomerId, cancellationToken)
             ?? throw new KeyNotFoundException("Vehicle was not found for the selected customer.");
 
-        var staffMember = await dbContext.StaffProfiles
-            .FirstOrDefaultAsync(x => x.StaffMemberId == request.StaffMemberId, cancellationToken)
+        var staffMember = await salesInvoiceRepository.GetStaffMemberAsync(request.StaffMemberId, cancellationToken)
             ?? throw new KeyNotFoundException("Staff member was not found.");
 
         var partIds = request.Items.Select(x => x.PartId).Distinct().ToList();
-        var parts = await dbContext.Parts
-            .Where(x => partIds.Contains(x.PartId))
-            .ToDictionaryAsync(x => x.PartId, cancellationToken);
+        var parts = await salesInvoiceRepository.GetPartsByIdsAsync(partIds, cancellationToken);
 
         if (parts.Count != partIds.Count)
         {
@@ -123,13 +115,10 @@ public class SalesInvoiceService(ApplicationDbContext dbContext) : ISalesInvoice
             Items = lineItems
         };
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-        dbContext.SalesInvoices.Add(salesInvoice);
-
+        Payment? payment = null;
         if (request.AmountPaid > 0)
         {
-            dbContext.Payments.Add(new Payment
+            payment = new Payment
             {
                 SalesInvoice = salesInvoice,
                 CustomerId = customer.CustomerId,
@@ -137,32 +126,10 @@ public class SalesInvoiceService(ApplicationDbContext dbContext) : ISalesInvoice
                 PaymentDate = DateTime.UtcNow,
                 PaymentType = request.PaymentType,
                 Amount = request.AmountPaid
-            });
+            };
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-
-        return new SalesInvoiceDto
-        {
-            SalesInvoiceId = salesInvoice.SalesInvoiceId,
-            InvoiceNo = salesInvoice.InvoiceNo,
-            CustomerId = salesInvoice.CustomerId,
-            VehicleId = salesInvoice.VehicleId,
-            StaffMemberId = salesInvoice.StaffMemberId,
-            InvoiceDate = salesInvoice.InvoiceDate,
-            Subtotal = salesInvoice.Subtotal,
-            DiscountPercent = salesInvoice.DiscountPercent,
-            DiscountAmount = salesInvoice.DiscountAmount,
-            TaxAmount = salesInvoice.TaxAmount,
-            TotalAmount = salesInvoice.TotalAmount,
-            AmountPaid = salesInvoice.AmountPaid,
-            BalanceDue = salesInvoice.BalanceDue,
-            CreditDueDate = salesInvoice.CreditDueDate,
-            PaymentType = salesInvoice.PaymentType,
-            PaymentStatus = salesInvoice.PaymentStatus,
-            Items = responseItems
-        };
+        return await salesInvoiceRepository.CreateSalesInvoiceAsync(salesInvoice, payment, responseItems, cancellationToken);
     }
 
     private static PaymentStatus ResolvePaymentStatus(decimal totalAmount, decimal amountPaid)

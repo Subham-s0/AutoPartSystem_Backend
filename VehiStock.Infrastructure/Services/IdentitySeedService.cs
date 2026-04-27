@@ -5,6 +5,7 @@ using VehiStock.Entities;
 
 namespace VehiStock.Infrastructure.Services;
 
+// Used for role seed management
 public static class IdentitySeedService
 {
     public static async Task EnsureRolesCreatedAsync(this IServiceProvider serviceProvider)

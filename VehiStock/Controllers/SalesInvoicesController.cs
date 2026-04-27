@@ -6,6 +6,7 @@ using VehiStock.Application.Interfaces.IServices;
 
 namespace VehiStock.Controllers;
 
+// Used for sales invoice endpoints
 [ApiController]
 [Route("api/staff/sales-invoices")]
 [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]

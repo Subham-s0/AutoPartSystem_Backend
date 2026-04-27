@@ -1,33 +1,27 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using VehiStock.Application.Common;
 using VehiStock.Application.DTOs.Staff;
+using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Entities;
-using VehiStock.Infrastructure.Persistance;
 
 namespace VehiStock.Infrastructure.Services;
 
+// Implementation for auth management
 public class StaffAdministrationService(
-    ApplicationDbContext dbContext,
-    UserManager<ApplicationUser> userManager,
-    RoleManager<ApplicationRole> roleManager) : IStaffAdministrationService
+    IStaffAdministrationRepository staffAdministrationRepository) : IStaffAdministrationService
 {
     public async Task<StaffSummaryDto> RegisterStaffAsync(RegisterStaffRequest request, CancellationToken cancellationToken = default)
     {
         var normalizedRole = NormalizeRole(request.Role);
-        await EnsureRoleExistsAsync(normalizedRole);
+        await staffAdministrationRepository.EnsureRoleExistsAsync(normalizedRole);
 
-        var existingUser = await userManager.FindByEmailAsync(request.Email);
+        var existingUser = await staffAdministrationRepository.FindUserByEmailAsync(request.Email);
         if (existingUser is not null)
         {
             throw new InvalidOperationException("A user with this email already exists.");
         }
 
-        var existingStaffCode = await dbContext.StaffProfiles
-            .AnyAsync(x => x.StaffCode == request.StaffCode, cancellationToken);
-
-        if (existingStaffCode)
+        if (await staffAdministrationRepository.StaffCodeExistsAsync(request.StaffCode, cancellationToken))
         {
             throw new InvalidOperationException("A staff member with this staff code already exists.");
         }
@@ -41,18 +35,18 @@ public class StaffAdministrationService(
             IsActive = true
         };
 
-        var identityResult = await userManager.CreateAsync(user, request.Password);
+        var identityResult = await staffAdministrationRepository.CreateUserAsync(user, request.Password);
         if (!identityResult.Succeeded)
         {
-            throw new InvalidOperationException(string.Join(" ", identityResult.Errors.Select(x => x.Description)));
+            throw new InvalidOperationException(string.Join(" ", identityResult.Errors));
         }
 
         try
         {
-            var addToRoleResult = await userManager.AddToRoleAsync(user, normalizedRole);
+            var addToRoleResult = await staffAdministrationRepository.AddUserToRoleAsync(user, normalizedRole);
             if (!addToRoleResult.Succeeded)
             {
-                throw new InvalidOperationException(string.Join(" ", addToRoleResult.Errors.Select(x => x.Description)));
+                throw new InvalidOperationException(string.Join(" ", addToRoleResult.Errors));
             }
 
             var staffProfile = new StaffProfile
@@ -63,24 +57,20 @@ public class StaffAdministrationService(
                 HireDate = request.HireDate
             };
 
-            dbContext.StaffProfiles.Add(staffProfile);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await staffAdministrationRepository.AddStaffProfileAsync(staffProfile, cancellationToken);
 
             return await MapStaffSummaryAsync(user, staffProfile, cancellationToken);
         }
         catch
         {
-            await userManager.DeleteAsync(user);
+            await staffAdministrationRepository.DeleteUserAsync(user);
             throw;
         }
     }
 
     public async Task<IReadOnlyList<StaffSummaryDto>> GetStaffAsync(CancellationToken cancellationToken = default)
     {
-        var staffProfiles = await dbContext.StaffProfiles
-            .Include(x => x.User)
-            .OrderBy(x => x.StaffCode)
-            .ToListAsync(cancellationToken);
+        var staffProfiles = await staffAdministrationRepository.GetStaffProfilesAsync(cancellationToken);
 
         var staff = new List<StaffSummaryDto>(staffProfiles.Count);
 
@@ -95,11 +85,9 @@ public class StaffAdministrationService(
     public async Task<StaffSummaryDto> UpdateRoleAsync(string userId, UpdateUserRoleRequest request, CancellationToken cancellationToken = default)
     {
         var normalizedRole = NormalizeRole(request.Role);
-        await EnsureRoleExistsAsync(normalizedRole);
+        await staffAdministrationRepository.EnsureRoleExistsAsync(normalizedRole);
 
-        var user = await userManager.Users
-            .Include(x => x.StaffProfile)
-            .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken)
+        var user = await staffAdministrationRepository.GetStaffUserByIdAsync(userId, cancellationToken)
             ?? throw new KeyNotFoundException("Staff user was not found.");
 
         if (user.StaffProfile is null)
@@ -107,42 +95,23 @@ public class StaffAdministrationService(
             throw new InvalidOperationException("The selected user does not have a staff profile.");
         }
 
-        var currentRoles = await userManager.GetRolesAsync(user);
+        var currentRoles = await staffAdministrationRepository.GetUserRolesAsync(user);
         if (currentRoles.Count > 0)
         {
-            var removeResult = await userManager.RemoveFromRolesAsync(user, currentRoles);
+            var removeResult = await staffAdministrationRepository.RemoveUserFromRolesAsync(user, currentRoles);
             if (!removeResult.Succeeded)
             {
-                throw new InvalidOperationException(string.Join(" ", removeResult.Errors.Select(x => x.Description)));
+                throw new InvalidOperationException(string.Join(" ", removeResult.Errors));
             }
         }
 
-        var addResult = await userManager.AddToRoleAsync(user, normalizedRole);
+        var addResult = await staffAdministrationRepository.AddUserToRoleAsync(user, normalizedRole);
         if (!addResult.Succeeded)
         {
-            throw new InvalidOperationException(string.Join(" ", addResult.Errors.Select(x => x.Description)));
+            throw new InvalidOperationException(string.Join(" ", addResult.Errors));
         }
 
         return await MapStaffSummaryAsync(user, user.StaffProfile, cancellationToken);
-    }
-
-    private async Task EnsureRoleExistsAsync(string roleName)
-    {
-        if (await roleManager.RoleExistsAsync(roleName))
-        {
-            return;
-        }
-
-        var result = await roleManager.CreateAsync(new ApplicationRole
-        {
-            Name = roleName,
-            NormalizedName = roleName.ToUpperInvariant()
-        });
-
-        if (!result.Succeeded)
-        {
-            throw new InvalidOperationException(string.Join(" ", result.Errors.Select(x => x.Description)));
-        }
     }
 
     private static string NormalizeRole(string role)
@@ -158,7 +127,7 @@ public class StaffAdministrationService(
 
     private async Task<StaffSummaryDto> MapStaffSummaryAsync(ApplicationUser user, StaffProfile staffProfile, CancellationToken cancellationToken)
     {
-        var roles = await userManager.GetRolesAsync(user);
+        var roles = await staffAdministrationRepository.GetUserRolesAsync(user);
 
         return new StaffSummaryDto
         {

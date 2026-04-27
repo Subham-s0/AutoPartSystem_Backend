@@ -6,6 +6,7 @@ using VehiStock.Application.Interfaces.IServices;
 
 namespace VehiStock.Controllers;
 
+// Used for customer report endpoints
 [ApiController]
 [Route("api/staff/reports/customers")]
 [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
