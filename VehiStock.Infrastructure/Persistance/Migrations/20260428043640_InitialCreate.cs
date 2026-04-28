@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace VehiStock.Infrastructure.Persistance.Migrations
 {
     /// <inheritdoc />
-    public partial class First_Migration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,6 +32,7 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
                     FullName = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
+                    ProfilePhotoUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -200,7 +201,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     CustomerId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<string>(type: "text", nullable: false),
-                    CustomerCode = table.Column<string>(type: "text", nullable: false),
                     Address = table.Column<string>(type: "text", nullable: false),
                     RegistrationSource = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -226,6 +226,8 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     NotificationType = table.Column<string>(type: "text", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Message = table.Column<string>(type: "text", nullable: false),
+                    ReferenceType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    ReferenceId = table.Column<int>(type: "integer", nullable: true),
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ReadAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -271,7 +273,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     StaffMemberId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<string>(type: "text", nullable: false),
-                    StaffCode = table.Column<string>(type: "text", nullable: false),
                     JobTitle = table.Column<string>(type: "text", nullable: false),
                     HireDate = table.Column<DateOnly>(type: "date", nullable: false)
                 },
@@ -293,9 +294,9 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     PartId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     PartCategoryId = table.Column<int>(type: "integer", nullable: false),
-                    PartCode = table.Column<string>(type: "text", nullable: false),
                     PartName = table.Column<string>(type: "text", nullable: false),
                     Brand = table.Column<string>(type: "text", nullable: false),
+                    PartPhotoUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     UnitCost = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     UnitPrice = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     StockQty = table.Column<int>(type: "integer", nullable: false),
@@ -360,6 +361,7 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     ManufactureYear = table.Column<int>(type: "integer", nullable: false),
                     EngineNo = table.Column<string>(type: "text", nullable: false),
                     ChassisNo = table.Column<string>(type: "text", nullable: false),
+                    VehiclePhotoUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     MileageKm = table.Column<int>(type: "integer", nullable: false),
                     Notes = table.Column<string>(type: "text", nullable: true)
                 },
@@ -487,6 +489,8 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     TaxAmount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     TotalAmount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     AmountPaid = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    BalanceDue = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    CreditDueDate = table.Column<DateOnly>(type: "date", nullable: true),
                     PaymentType = table.Column<string>(type: "text", nullable: false),
                     PaymentStatus = table.Column<string>(type: "text", nullable: false),
                     EmailSentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -557,6 +561,43 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                         column: x => x.VehicleId,
                         principalTable: "Vehicles",
                         principalColumn: "VehicleId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Payments",
+                columns: table => new
+                {
+                    PaymentId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    SalesInvoiceId = table.Column<int>(type: "integer", nullable: false),
+                    CustomerId = table.Column<int>(type: "integer", nullable: false),
+                    ReceivedByStaffId = table.Column<int>(type: "integer", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    PaymentType = table.Column<string>(type: "text", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    Notes = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payments", x => x.PaymentId);
+                    table.ForeignKey(
+                        name: "FK_Payments_CustomersProfile_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "CustomersProfile",
+                        principalColumn: "CustomerId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Payments_SalesInvoices_SalesInvoiceId",
+                        column: x => x.SalesInvoiceId,
+                        principalTable: "SalesInvoices",
+                        principalColumn: "SalesInvoiceId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Payments_StaffsProfile_ReceivedByStaffId",
+                        column: x => x.ReceivedByStaffId,
+                        principalTable: "StaffsProfile",
+                        principalColumn: "StaffMemberId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -707,21 +748,15 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_CustomersProfile_CustomerCode",
-                table: "CustomersProfile",
-                column: "CustomerCode",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_CustomersProfile_UserId",
                 table: "CustomersProfile",
                 column: "UserId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Notifications_UserId",
+                name: "IX_Notifications_UserId_NotificationType_ReferenceType_Referen~",
                 table: "Notifications",
-                column: "UserId");
+                columns: new[] { "UserId", "NotificationType", "ReferenceType", "ReferenceId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_PartCategories_Name",
@@ -745,10 +780,19 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                 column: "PartCategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Parts_PartCode",
-                table: "Parts",
-                column: "PartCode",
-                unique: true);
+                name: "IX_Payments_CustomerId",
+                table: "Payments",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_ReceivedByStaffId",
+                table: "Payments",
+                column: "ReceivedByStaffId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_SalesInvoiceId",
+                table: "Payments",
+                column: "SalesInvoiceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PurchaseInvoiceItems_PartId",
@@ -859,12 +903,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                 column: "VehicleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StaffsProfile_StaffCode",
-                table: "StaffsProfile",
-                column: "StaffCode",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_StaffsProfile_UserId",
                 table: "StaffsProfile",
                 column: "UserId",
@@ -911,6 +949,9 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
 
             migrationBuilder.DropTable(
                 name: "PartRequests");
+
+            migrationBuilder.DropTable(
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "PurchaseInvoiceItems");

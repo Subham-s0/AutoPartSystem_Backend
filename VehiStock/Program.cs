@@ -3,8 +3,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using VehiStock.Application.Interfaces.IRepositories;
+using VehiStock.Application.Interfaces.IServices;
+using VehiStock.Domain.Seeders;
 using VehiStock.Entities;
 using VehiStock.Infrastructure.Persistance;
+using VehiStock.Infrastructure.Repositories;
+using VehiStock.Infrastructure.Settings;
+using VehiStock.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +36,16 @@ builder.Services
     .AddDefaultTokenProviders();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var jwtKey = jwtSection["Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured.");
+builder.Services.Configure<JwtSettings>(jwtSection);
+builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authentication:Google"));
+builder.Services.Configure<AdminSeedSettings>(builder.Configuration.GetSection("SeedAdmin"));
+builder.Services.Configure<AlertProcessingSettings>(builder.Configuration.GetSection("Alerts"));
+
+var jwtSettings = jwtSection.Get<JwtSettings>() ?? throw new InvalidOperationException("Jwt settings are not configured.");
+if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
+{
+    throw new InvalidOperationException("Jwt:SecretKey is not configured.");
+}
 
 var authenticationBuilder = builder.Services.AddAuthentication(options =>
 {
@@ -46,26 +62,23 @@ authenticationBuilder.AddJwtBearer(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSection["Issuer"],
-        ValidAudience = jwtSection["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        NameClaimType = ClaimTypes.Name,
+        RoleClaimType = ClaimTypes.Role,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
     };
 });
 
-var googleAuthSection = builder.Configuration.GetSection("Authentication:Google");
-var googleClientId = googleAuthSection["ClientId"];
-var googleClientSecret = googleAuthSection["ClientSecret"];
-
-if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
-{
-    authenticationBuilder.AddGoogle(options =>
-    {
-        options.ClientId = googleClientId;
-        options.ClientSecret = googleClientSecret;
-    });
-}
-
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
+builder.Services.AddScoped<ICustomerPortalRepository, CustomerPortalRepository>();
+builder.Services.AddScoped<IAlertRepository, AlertRepository>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IUserAuthService, UserAuthService>();
+builder.Services.AddScoped<ICustomerPortalService, CustomerPortalService>();
+builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddHostedService<AlertBackgroundService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -85,5 +98,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var seedSettings = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdminSeedSettings>>().Value;
+    await RoleSeeder.SeedAsync(roleManager);
+    await AdminSeeder.SeedAsync(roleManager, userManager, seedSettings);
+}
 
 app.Run();

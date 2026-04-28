@@ -13,9 +13,6 @@ public class StaffProfile
     public string UserId { get; set; } = string.Empty;
 
     [Required]
-    public string StaffCode { get; set; } = string.Empty;
-
-    [Required]
     public string JobTitle { get; set; } = string.Empty;
 
     public DateOnly HireDate { get; set; }

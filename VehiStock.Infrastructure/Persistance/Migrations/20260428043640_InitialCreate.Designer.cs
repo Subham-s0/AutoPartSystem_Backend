@@ -12,8 +12,8 @@ using VehiStock.Infrastructure.Persistance;
 namespace VehiStock.Infrastructure.Persistance.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260427070210_First_Migration")]
-    partial class First_Migration
+    [Migration("20260428043640_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -213,6 +213,10 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("ProfilePhotoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
@@ -296,10 +300,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CustomerCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("RegistrationSource")
                         .IsRequired()
                         .HasColumnType("text");
@@ -309,9 +309,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("CustomerId");
-
-                    b.HasIndex("CustomerCode")
-                        .IsUnique();
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -344,6 +341,13 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("ReferenceId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ReferenceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
@@ -354,7 +358,7 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
 
                     b.HasKey("NotificationId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "NotificationType", "ReferenceType", "ReferenceId", "CreatedAt");
 
                     b.ToTable("Notifications");
                 });
@@ -380,13 +384,13 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Property<int>("PartCategoryId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("PartCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("PartName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("PartPhotoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("StockQty")
                         .HasColumnType("integer");
@@ -402,9 +406,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.HasKey("PartId");
 
                     b.HasIndex("PartCategoryId");
-
-                    b.HasIndex("PartCode")
-                        .IsUnique();
 
                     b.ToTable("Parts");
                 });
@@ -470,6 +471,48 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.HasIndex("VehicleId");
 
                     b.ToTable("PartRequests");
+                });
+
+            modelBuilder.Entity("VehiStock.Entities.Payment", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ReceivedByStaffId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SalesInvoiceId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("ReceivedByStaffId");
+
+                    b.HasIndex("SalesInvoiceId");
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("VehiStock.Entities.PurchaseInvoice", b =>
@@ -642,6 +685,13 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Property<decimal>("AmountPaid")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("BalanceDue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateOnly?>("CreditDueDate")
+                        .HasColumnType("date");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
@@ -850,18 +900,11 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("StaffCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("StaffMemberId");
-
-                    b.HasIndex("StaffCode")
-                        .IsUnique();
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -908,6 +951,10 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Property<string>("VehicleNumber")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("VehiclePhotoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.HasKey("VehicleId");
 
@@ -1086,6 +1133,33 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("VehiStock.Entities.Payment", b =>
+                {
+                    b.HasOne("VehiStock.Entities.CustomerProfile", "Customer")
+                        .WithMany("Payments")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VehiStock.Entities.StaffProfile", "ReceivedByStaff")
+                        .WithMany("ReceivedPayments")
+                        .HasForeignKey("ReceivedByStaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VehiStock.Entities.SalesInvoice", "SalesInvoice")
+                        .WithMany("Payments")
+                        .HasForeignKey("SalesInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("ReceivedByStaff");
+
+                    b.Navigation("SalesInvoice");
                 });
 
             modelBuilder.Entity("VehiStock.Entities.PurchaseInvoice", b =>
@@ -1300,6 +1374,8 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
 
                     b.Navigation("PartRequests");
 
+                    b.Navigation("Payments");
+
                     b.Navigation("Reviews");
 
                     b.Navigation("SalesInvoices");
@@ -1331,6 +1407,8 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
             modelBuilder.Entity("VehiStock.Entities.SalesInvoice", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("VehiStock.Entities.ServiceRecord", b =>
@@ -1343,6 +1421,8 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
             modelBuilder.Entity("VehiStock.Entities.StaffProfile", b =>
                 {
                     b.Navigation("AssignedAppointments");
+
+                    b.Navigation("ReceivedPayments");
 
                     b.Navigation("SalesInvoices");
 

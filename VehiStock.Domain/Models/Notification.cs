@@ -20,6 +20,11 @@ public class Notification
     [Required]
     public string Message { get; set; } = string.Empty;
 
+    [MaxLength(50)]
+    public string? ReferenceType { get; set; }
+
+    public int? ReferenceId { get; set; }
+
     public bool IsRead { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

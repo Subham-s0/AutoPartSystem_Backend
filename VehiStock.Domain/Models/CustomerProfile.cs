@@ -13,9 +13,6 @@ public class CustomerProfile
     public string UserId { get; set; } = string.Empty;
 
     [Required]
-    public string CustomerCode { get; set; } = string.Empty;
-
-    [Required]
     public string Address { get; set; } = string.Empty;
 
     public RegistrationSource RegistrationSource { get; set; }

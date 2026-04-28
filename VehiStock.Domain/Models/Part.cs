@@ -18,9 +18,6 @@ public class Part
     public int PartCategoryId { get; set; }
 
     [Required]
-    public string PartCode { get; set; } = string.Empty;
-
-    [Required]
     public string PartName { get; set; } = string.Empty;
 
     [Required]

@@ -62,16 +62,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .HasIndex(x => x.UserId)
             .IsUnique();
 
-        builder.Entity<StaffProfile>()
-            .HasIndex(x => x.StaffCode)
-            .IsUnique();
-
         builder.Entity<CustomerProfile>()
             .HasIndex(x => x.UserId)
-            .IsUnique();
-
-        builder.Entity<CustomerProfile>()
-            .HasIndex(x => x.CustomerCode)
             .IsUnique();
 
         builder.Entity<Vehicle>()
@@ -84,10 +76,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
         builder.Entity<PartCategory>()
             .HasIndex(x => x.Name)
-            .IsUnique();
-
-        builder.Entity<Part>()
-            .HasIndex(x => x.PartCode)
             .IsUnique();
 
         builder.Entity<PurchaseInvoice>()
@@ -105,6 +93,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<Notification>()
             .Property(x => x.NotificationType)
             .HasConversion<string>();
+
+        builder.Entity<Notification>()
+            .Property(x => x.ReferenceType)
+            .HasMaxLength(50);
+
+        builder.Entity<Notification>()
+            .HasIndex(x => new { x.UserId, x.NotificationType, x.ReferenceType, x.ReferenceId, x.CreatedAt });
 
         builder.Entity<PartRequest>()
             .Property(x => x.Status)

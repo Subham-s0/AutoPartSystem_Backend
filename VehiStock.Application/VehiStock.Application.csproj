@@ -10,13 +10,4 @@
     <ProjectReference Include="..\VehiStock.Domain\VehiStock.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Interfaces\IServices\" />
-    <Folder Include="Interfaces\IRepositories\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.7" />
-  </ItemGroup>
-
 </Project>
