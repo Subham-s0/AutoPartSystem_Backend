@@ -4,10 +4,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+<<<<<<< HEAD
 
+=======
+using Microsoft.OpenApi;
+using System.Security.Claims;
+>>>>>>> main
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Domain.Seeders;
+using VehiStock.Domain.Constants;
 using VehiStock.Entities;
 using VehiStock.Infrastructure.Persistance;
 using VehiStock.Infrastructure.Repositories;
@@ -95,11 +101,18 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
 builder.Services.AddScoped<ICustomerPortalRepository, CustomerPortalRepository>();
 builder.Services.AddScoped<IAlertRepository, AlertRepository>();
+<<<<<<< HEAD
 
+=======
+builder.Services.AddScoped<IStaffManagementRepository, StaffManagementRepository>();
+builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
+builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
+>>>>>>> main
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
 builder.Services.AddScoped<ICustomerPortalService, CustomerPortalService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
+<<<<<<< HEAD
 builder.Services.AddScoped<IReportService, ReportService>();
 
 // 🔥 EMAIL FEATURE (Feature 11)
@@ -115,6 +128,46 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+=======
+builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
+builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
+builder.Services.AddScoped<IStaffReportService, StaffReportService>();
+builder.Services.AddHostedService<AlertBackgroundService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<InvoiceTemplateService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddControllers();
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "VehiStock API",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter a JWT bearer token."
+    });
+});
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+>>>>>>> main
 
 var app = builder.Build();
 
@@ -122,8 +175,18 @@ var app = builder.Build();
 // ✅ MIDDLEWARE
 if (app.Environment.IsDevelopment())
 {
+<<<<<<< HEAD
     app.UseSwagger();
     app.UseSwaggerUI();
+=======
+    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "VehiStock API v1");
+        options.RoutePrefix = "swagger";
+    });
+>>>>>>> main
 }
 
 app.UseCors("AllowReactApp");

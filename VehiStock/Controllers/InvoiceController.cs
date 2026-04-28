@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 using Microsoft.AspNetCore.Mvc;
+=======
+﻿using Microsoft.AspNetCore.Mvc;
+>>>>>>> main
 using VehiStock.Application.Dtos.Invoices;
 using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Infrastructure.Services;
@@ -24,6 +28,7 @@ namespace VehiStock.API.Controllers
         public async Task<IActionResult> SendInvoice([FromBody] InvoiceEmailDto dto)
         {
             if (dto == null)
+<<<<<<< HEAD
             {
                 return BadRequest(new
                 {
@@ -49,6 +54,15 @@ namespace VehiStock.API.Controllers
                     message = "Invoice number is required"
                 });
             }
+=======
+                return BadRequest("Request body is empty");
+
+            if (string.IsNullOrWhiteSpace(dto.CustomerEmail))
+                return BadRequest("Customer email is required");
+
+            if (string.IsNullOrWhiteSpace(dto.InvoiceNumber))
+                return BadRequest("Invoice number is required");
+>>>>>>> main
 
             try
             {
@@ -70,6 +84,7 @@ namespace VehiStock.API.Controllers
                     message = "Invoice sent successfully"
                 });
             }
+<<<<<<< HEAD
             catch (System.Net.Mail.SmtpException ex)
             {
                 return StatusCode(500, new
@@ -79,13 +94,19 @@ namespace VehiStock.API.Controllers
                     error = ex.Message
                 });
             }
+=======
+>>>>>>> main
             catch (Exception ex)
             {
                 return StatusCode(500, new
                 {
                     success = false,
+<<<<<<< HEAD
                     message = "Unexpected error occurred",
                     error = ex.Message
+=======
+                    message = ex.Message
+>>>>>>> main
                 });
             }
         }
