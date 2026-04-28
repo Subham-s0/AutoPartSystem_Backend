@@ -1,4 +1,3 @@
-
 namespace VehiStock.Infrastructure.Services
 {
     public class InvoiceTemplateService

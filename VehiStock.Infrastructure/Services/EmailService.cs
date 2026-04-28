@@ -17,26 +17,33 @@ namespace VehiStock.Infrastructure.Services
 
         public async Task SendInvoiceEmail(string toEmail, string subject, string htmlBody)
         {
-            var client = new SmtpClient(_settings.SmtpServer, _settings.Port)
+            try
             {
-                Credentials = new NetworkCredential(
-                    _settings.SenderEmail,
-                    _settings.SenderPassword
-                ),
-                EnableSsl = true
-            };
+                var mail = new MailMessage();
+                mail.From = new MailAddress(_settings.SenderEmail);
+                mail.To.Add(toEmail.Trim());
+                mail.Subject = subject;
+                mail.Body = htmlBody;
+                mail.IsBodyHtml = true;
 
-            var mail = new MailMessage
+                using (var smtp = new SmtpClient(_settings.SmtpServer, _settings.Port))
+                {
+                    smtp.Credentials = new NetworkCredential(
+                        _settings.SenderEmail,
+                        _settings.SenderPassword
+                    );
+
+                    smtp.EnableSsl = true;
+                    smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+
+                    await smtp.SendMailAsync(mail);
+                }
+            }
+            catch (Exception ex)
             {
-                From = new MailAddress(_settings.SenderEmail),
-                Subject = subject,
-                Body = htmlBody,
-                IsBodyHtml = true
-            };
-
-            mail.To.Add(toEmail);
-
-            await client.SendMailAsync(mail);
+               
+                throw new Exception("SMTP FAILED: " + ex.Message);
+            }
         }
     }
 }
