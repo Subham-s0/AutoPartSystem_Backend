@@ -10,8 +10,9 @@ using VehiStock.Domain.Seeders;
 using VehiStock.Entities;
 using VehiStock.Infrastructure.Persistance;
 using VehiStock.Infrastructure.Repositories;
-using VehiStock.Infrastructure.Settings;
+using VehiStock.Infrastructure.Settings; 
 using VehiStock.Infrastructure.Services;
+using VehiStock.Infrastructure.Configurations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,6 +72,7 @@ authenticationBuilder.AddJwtBearer(options =>
 });
 
 builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
 builder.Services.AddScoped<ICustomerPortalRepository, CustomerPortalRepository>();
 builder.Services.AddScoped<IAlertRepository, AlertRepository>();
@@ -78,10 +80,20 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
 builder.Services.AddScoped<ICustomerPortalService, CustomerPortalService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+
 builder.Services.AddHostedService<AlertBackgroundService>();
 
+// ✔ FIX 2 (EmailSettings binding works now)
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+
+// ✔ FIX 3 (Email DI correct)
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+builder.Services.AddScoped<InvoiceTemplateService>();
+
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -104,6 +116,7 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var seedSettings = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdminSeedSettings>>().Value;
+
     await RoleSeeder.SeedAsync(roleManager);
     await AdminSeeder.SeedAsync(roleManager, userManager, seedSettings);
 }
