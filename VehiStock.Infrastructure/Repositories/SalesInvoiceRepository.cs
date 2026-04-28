@@ -1,0 +1,60 @@
+using Microsoft.EntityFrameworkCore;
+using VehiStock.Application.Interfaces.IRepositories;
+using VehiStock.Entities;
+using VehiStock.Infrastructure.Persistance;
+
+namespace VehiStock.Infrastructure.Repositories;
+
+// Implementation for sales invoice data access
+public class SalesInvoiceRepository : ISalesInvoiceRepository
+{
+    private readonly ApplicationDbContext _dbContext;
+
+    public SalesInvoiceRepository(ApplicationDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public Task<StaffProfile?> GetStaffProfileByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.StaffProfiles
+            .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+    }
+
+    public Task<bool> InvoiceExistsAsync(string invoiceNo, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.SalesInvoices.AnyAsync(x => x.InvoiceNo == invoiceNo, cancellationToken);
+    }
+
+    public Task<CustomerProfile?> GetCustomerAsync(int customerId, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.CustomerProfiles.SingleOrDefaultAsync(x => x.CustomerId == customerId, cancellationToken);
+    }
+
+    public Task<Vehicle?> GetVehicleForCustomerAsync(int customerId, int vehicleId, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Vehicles.SingleOrDefaultAsync(x => x.CustomerId == customerId && x.VehicleId == vehicleId, cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<Part>> GetPartsByIdsAsync(IReadOnlyCollection<int> partIds, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Parts
+            .Where(x => partIds.Contains(x.PartId))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<SalesInvoice> CreateSalesInvoiceAsync(SalesInvoice salesInvoice, Payment? payment, CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        _dbContext.SalesInvoices.Add(salesInvoice);
+        if (payment is not null)
+        {
+            _dbContext.Payments.Add(payment);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return salesInvoice;
+    }
+}
