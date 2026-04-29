@@ -9,7 +9,7 @@ namespace VehiStock.Controllers;
 
 // Used for customer report endpoints
 [ApiController]
-[Authorize(Roles = RoleNames.Staff)]
+[Authorize(Roles = $"{RoleNames.Staff},{RoleNames.Admin}")]
 [Route("api/staff/reports/customers")]
 public class CustomerReportsController : ControllerBase
 {

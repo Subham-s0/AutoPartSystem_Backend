@@ -21,6 +21,14 @@ public class SalesInvoicesController : ControllerBase
         _salesInvoiceService = salesInvoiceService;
     }
 
+    [HttpGet("lookups")]
+    public async Task<ActionResult<ApiResponse<SalesInvoiceLookupResponse>>> GetLookups(
+        CancellationToken cancellationToken = default)
+    {
+        var response = await _salesInvoiceService.GetLookupAsync(cancellationToken);
+        return Ok(ApiResponse<SalesInvoiceLookupResponse>.Ok(response, "Sales invoice lookups fetched successfully."));
+    }
+
     [HttpPost]
     public async Task<ActionResult<ApiResponse<SalesInvoiceResponse>>> Create(
         CreateSalesInvoiceRequest request,

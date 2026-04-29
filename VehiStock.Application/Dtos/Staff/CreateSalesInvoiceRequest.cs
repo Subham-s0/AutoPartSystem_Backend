@@ -6,10 +6,6 @@ namespace VehiStock.Application.Dtos.Staff;
 // Used for sales invoice creation request
 public class CreateSalesInvoiceRequest
 {
-    [Required]
-    [MaxLength(50)]
-    public string InvoiceNo { get; set; } = string.Empty;
-
     public int CustomerId { get; set; }
 
     public int VehicleId { get; set; }

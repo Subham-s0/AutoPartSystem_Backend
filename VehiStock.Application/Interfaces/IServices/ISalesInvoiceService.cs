@@ -6,4 +6,6 @@ namespace VehiStock.Application.Interfaces.IServices;
 public interface ISalesInvoiceService
 {
     Task<SalesInvoiceResponse> CreateAsync(string userId, CreateSalesInvoiceRequest request, CancellationToken cancellationToken = default);
+
+    Task<SalesInvoiceLookupResponse> GetLookupAsync(CancellationToken cancellationToken = default);
 }
