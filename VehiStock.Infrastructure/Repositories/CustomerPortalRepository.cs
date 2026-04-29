@@ -22,6 +22,14 @@ public class CustomerPortalRepository : ICustomerPortalRepository
             .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
     }
 
+    public async Task<IReadOnlyCollection<Vehicle>> GetVehiclesByCustomerIdAsync(int customerId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Vehicles
+            .Where(x => x.CustomerId == customerId)
+            .OrderBy(x => x.VehicleNumber)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<Vehicle?> GetVehicleForCustomerAsync(int customerId, int vehicleId, CancellationToken cancellationToken = default)
     {
         return _dbContext.Vehicles
@@ -86,6 +94,59 @@ public class CustomerPortalRepository : ICustomerPortalRepository
         _dbContext.Reviews.Add(review);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return review;
+    }
+
+    public async Task<PaginatedResponse<SalesInvoice>> GetPurchaseHistoryPageAsync(int customerId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.SalesInvoices
+            .Include(x => x.Vehicle)
+            .Include(x => x.Items)
+                .ThenInclude(x => x.Part)
+            .Where(x => x.CustomerId == customerId)
+            .OrderByDescending(x => x.InvoiceDate)
+            .ThenByDescending(x => x.SalesInvoiceId);
+
+        var totalRecords = await query.CountAsync(cancellationToken);
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PaginatedResponse<SalesInvoice>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalRecords = totalRecords,
+            TotalPages = totalRecords == 0 ? 0 : (int)Math.Ceiling(totalRecords / (double)pageSize)
+        };
+    }
+
+    public async Task<PaginatedResponse<ServiceRecord>> GetServiceHistoryPageAsync(int customerId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.ServiceRecords
+            .Include(x => x.Vehicle)
+            .Include(x => x.PartsUsed)
+                .ThenInclude(x => x.Part)
+            .Include(x => x.Reviews)
+            .Where(x => x.CustomerId == customerId)
+            .OrderByDescending(x => x.ServiceDate)
+            .ThenByDescending(x => x.ServiceRecordId);
+
+        var totalRecords = await query.CountAsync(cancellationToken);
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PaginatedResponse<ServiceRecord>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalRecords = totalRecords,
+            TotalPages = totalRecords == 0 ? 0 : (int)Math.Ceiling(totalRecords / (double)pageSize)
+        };
     }
 
     public async Task<IReadOnlyCollection<SalesInvoice>> GetPurchaseHistoryAsync(int customerId, CancellationToken cancellationToken = default)

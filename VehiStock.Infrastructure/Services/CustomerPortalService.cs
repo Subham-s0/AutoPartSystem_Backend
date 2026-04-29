@@ -1,4 +1,5 @@
 using VehiStock.Application.Dtos.Customer;
+using VehiStock.Application.Dtos.Common;
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Entities;
@@ -12,6 +13,23 @@ public class CustomerPortalService : ICustomerPortalService
     public CustomerPortalService(ICustomerPortalRepository customerPortalRepository)
     {
         _customerPortalRepository = customerPortalRepository;
+    }
+
+    public async Task<IReadOnlyCollection<CustomerVehicleResponse>> GetVehiclesAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var customer = await GetCustomerProfileAsync(userId, cancellationToken);
+        var vehicles = await _customerPortalRepository.GetVehiclesByCustomerIdAsync(customer.CustomerId, cancellationToken);
+
+        return vehicles.Select(vehicle => new CustomerVehicleResponse
+        {
+            VehicleId = vehicle.VehicleId,
+            VehicleNumber = vehicle.VehicleNumber,
+            Make = vehicle.Make,
+            Model = vehicle.Model,
+            ManufactureYear = vehicle.ManufactureYear,
+            MileageKm = vehicle.MileageKm,
+            VehiclePhotoUrl = vehicle.VehiclePhotoUrl
+        }).ToArray();
     }
 
     public async Task<AppointmentResponse> BookAppointmentAsync(string userId, BookAppointmentRequest request, CancellationToken cancellationToken = default)
@@ -117,6 +135,48 @@ public class CustomerPortalService : ICustomerPortalService
         };
     }
 
+    public async Task<PaginatedResponse<PurchaseHistoryResponse>> GetPurchaseHistoryPageAsync(string userId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var customer = await GetCustomerProfileAsync(userId, cancellationToken);
+        var normalizedPageNumber = NormalizePageNumber(pageNumber);
+        var normalizedPageSize = NormalizePageSize(pageSize);
+        var purchases = await _customerPortalRepository.GetPurchaseHistoryPageAsync(
+            customer.CustomerId,
+            normalizedPageNumber,
+            normalizedPageSize,
+            cancellationToken);
+
+        return new PaginatedResponse<PurchaseHistoryResponse>
+        {
+            Items = purchases.Items.Select(MapPurchaseHistory).ToArray(),
+            PageNumber = purchases.PageNumber,
+            PageSize = purchases.PageSize,
+            TotalRecords = purchases.TotalRecords,
+            TotalPages = purchases.TotalPages
+        };
+    }
+
+    public async Task<PaginatedResponse<ServiceHistoryResponse>> GetServiceHistoryPageAsync(string userId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var customer = await GetCustomerProfileAsync(userId, cancellationToken);
+        var normalizedPageNumber = NormalizePageNumber(pageNumber);
+        var normalizedPageSize = NormalizePageSize(pageSize);
+        var services = await _customerPortalRepository.GetServiceHistoryPageAsync(
+            customer.CustomerId,
+            normalizedPageNumber,
+            normalizedPageSize,
+            cancellationToken);
+
+        return new PaginatedResponse<ServiceHistoryResponse>
+        {
+            Items = services.Items.Select(MapServiceHistory).ToArray(),
+            PageNumber = services.PageNumber,
+            PageSize = services.PageSize,
+            TotalRecords = services.TotalRecords,
+            TotalPages = services.TotalPages
+        };
+    }
+
     public async Task<CustomerHistoryResponse> GetHistoryAsync(string userId, CancellationToken cancellationToken = default)
     {
         var customer = await GetCustomerProfileAsync(userId, cancellationToken);
@@ -125,54 +185,8 @@ public class CustomerPortalService : ICustomerPortalService
 
         return new CustomerHistoryResponse
         {
-            Purchases = purchases.Select(x => new PurchaseHistoryResponse
-            {
-                SalesInvoiceId = x.SalesInvoiceId,
-                InvoiceNo = x.InvoiceNo,
-                InvoiceDate = x.InvoiceDate,
-                VehicleNumber = x.Vehicle.VehicleNumber,
-                TotalAmount = x.TotalAmount,
-                AmountPaid = x.AmountPaid,
-                BalanceDue = x.BalanceDue,
-                PaymentStatus = x.PaymentStatus.ToString(),
-                Items = x.Items.Select(item => new PurchaseHistoryItemResponse
-                {
-                    PartName = item.Part.PartName,
-                    Brand = item.Part.Brand,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice,
-                    DiscountAmount = item.DiscountAmount,
-                    LineTotal = item.LineTotal
-                }).ToArray()
-            }).ToArray(),
-            Services = services.Select(x => new ServiceHistoryResponse
-            {
-                ServiceRecordId = x.ServiceRecordId,
-                ServiceDate = x.ServiceDate,
-                VehicleNumber = x.Vehicle.VehicleNumber,
-                Diagnosis = x.Diagnosis,
-                WorkDone = x.WorkDone,
-                LaborCharge = x.LaborCharge,
-                PartsCharge = x.PartsCharge,
-                TotalCharge = x.TotalCharge,
-                Notes = x.Notes,
-                PartsUsed = x.PartsUsed.Select(part => new ServiceHistoryPartResponse
-                {
-                    PartName = part.Part.PartName,
-                    Brand = part.Part.Brand,
-                    Quantity = part.Quantity,
-                    UnitPrice = part.UnitPrice,
-                    LineTotal = part.LineTotal
-                }).ToArray(),
-                Review = x.Reviews.Select(review => new ReviewResponse
-                {
-                    ReviewId = review.ReviewId,
-                    ServiceRecordId = review.ServiceRecordId,
-                    Rating = review.Rating,
-                    ReviewText = review.ReviewText,
-                    CreatedAt = review.CreatedAt
-                }).SingleOrDefault()
-            }).ToArray()
+            Purchases = purchases.Select(MapPurchaseHistory).ToArray(),
+            Services = services.Select(MapServiceHistory).ToArray()
         };
     }
 
@@ -215,5 +229,71 @@ public class CustomerPortalService : ICustomerPortalService
             Status = partRequest.Status.ToString(),
             RequestDate = partRequest.RequestDate
         };
+    }
+
+    private static PurchaseHistoryResponse MapPurchaseHistory(SalesInvoice salesInvoice)
+    {
+        return new PurchaseHistoryResponse
+        {
+            SalesInvoiceId = salesInvoice.SalesInvoiceId,
+            InvoiceNo = salesInvoice.InvoiceNo,
+            InvoiceDate = salesInvoice.InvoiceDate,
+            VehicleNumber = salesInvoice.Vehicle.VehicleNumber,
+            TotalAmount = salesInvoice.TotalAmount,
+            AmountPaid = salesInvoice.AmountPaid,
+            BalanceDue = salesInvoice.BalanceDue,
+            PaymentStatus = salesInvoice.PaymentStatus.ToString(),
+            Items = salesInvoice.Items.Select(item => new PurchaseHistoryItemResponse
+            {
+                PartName = item.Part.PartName,
+                Brand = item.Part.Brand,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                DiscountAmount = item.DiscountAmount,
+                LineTotal = item.LineTotal
+            }).ToArray()
+        };
+    }
+
+    private static ServiceHistoryResponse MapServiceHistory(ServiceRecord serviceRecord)
+    {
+        return new ServiceHistoryResponse
+        {
+            ServiceRecordId = serviceRecord.ServiceRecordId,
+            ServiceDate = serviceRecord.ServiceDate,
+            VehicleNumber = serviceRecord.Vehicle.VehicleNumber,
+            Diagnosis = serviceRecord.Diagnosis,
+            WorkDone = serviceRecord.WorkDone,
+            LaborCharge = serviceRecord.LaborCharge,
+            PartsCharge = serviceRecord.PartsCharge,
+            TotalCharge = serviceRecord.TotalCharge,
+            Notes = serviceRecord.Notes,
+            PartsUsed = serviceRecord.PartsUsed.Select(part => new ServiceHistoryPartResponse
+            {
+                PartName = part.Part.PartName,
+                Brand = part.Part.Brand,
+                Quantity = part.Quantity,
+                UnitPrice = part.UnitPrice,
+                LineTotal = part.LineTotal
+            }).ToArray(),
+            Review = serviceRecord.Reviews.Select(review => new ReviewResponse
+            {
+                ReviewId = review.ReviewId,
+                ServiceRecordId = review.ServiceRecordId,
+                Rating = review.Rating,
+                ReviewText = review.ReviewText,
+                CreatedAt = review.CreatedAt
+            }).SingleOrDefault()
+        };
+    }
+
+    private static int NormalizePageNumber(int pageNumber)
+    {
+        return pageNumber < 1 ? 1 : pageNumber;
+    }
+
+    private static int NormalizePageSize(int pageSize)
+    {
+        return Math.Clamp(pageSize, 1, 50);
     }
 }

@@ -1,10 +1,12 @@
 using VehiStock.Entities;
+using VehiStock.Application.Dtos.Common;
 
 namespace VehiStock.Application.Interfaces.IRepositories;
 
 public interface ICustomerPortalRepository
 {
     Task<CustomerProfile?> GetCustomerProfileByUserIdAsync(string userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<Vehicle>> GetVehiclesByCustomerIdAsync(int customerId, CancellationToken cancellationToken = default);
     Task<Vehicle?> GetVehicleForCustomerAsync(int customerId, int vehicleId, CancellationToken cancellationToken = default);
     Task<Appointment> CreateAppointmentAsync(Appointment appointment, CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<Appointment>> GetAppointmentsByCustomerIdAsync(int customerId, CancellationToken cancellationToken = default);
@@ -13,6 +15,8 @@ public interface ICustomerPortalRepository
     Task<ServiceRecord?> GetServiceRecordForCustomerAsync(int customerId, int serviceRecordId, CancellationToken cancellationToken = default);
     Task<bool> HasReviewForServiceRecordAsync(int customerId, int serviceRecordId, CancellationToken cancellationToken = default);
     Task<Review> CreateReviewAsync(Review review, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<SalesInvoice>> GetPurchaseHistoryPageAsync(int customerId, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<ServiceRecord>> GetServiceHistoryPageAsync(int customerId, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<SalesInvoice>> GetPurchaseHistoryAsync(int customerId, CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<ServiceRecord>> GetServiceHistoryAsync(int customerId, CancellationToken cancellationToken = default);
 }

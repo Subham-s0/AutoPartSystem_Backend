@@ -20,6 +20,13 @@ public class CustomerPortalController : ControllerBase
         _customerPortalService = customerPortalService;
     }
 
+    [HttpGet("vehicles")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<CustomerVehicleResponse>>>> GetVehicles(CancellationToken cancellationToken)
+    {
+        var vehicles = await _customerPortalService.GetVehiclesAsync(GetCurrentUserId(), cancellationToken);
+        return Ok(ApiResponse<IReadOnlyCollection<CustomerVehicleResponse>>.Ok(vehicles, "Vehicles fetched successfully."));
+    }
+
     [HttpPost("appointments")]
     public async Task<ActionResult<ApiResponse<AppointmentResponse>>> BookAppointment(
         BookAppointmentRequest request,
@@ -93,6 +100,50 @@ public class CustomerPortalController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(ApiResponse<CustomerHistoryResponse>.Fail(ex.Message));
+        }
+    }
+
+    [HttpGet("history/purchases")]
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<PurchaseHistoryResponse>>>> GetPurchaseHistory(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var history = await _customerPortalService.GetPurchaseHistoryPageAsync(
+                GetCurrentUserId(),
+                pageNumber,
+                pageSize,
+                cancellationToken);
+
+            return Ok(ApiResponse<PaginatedResponse<PurchaseHistoryResponse>>.Ok(history, "Purchase history fetched successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<PaginatedResponse<PurchaseHistoryResponse>>.Fail(ex.Message));
+        }
+    }
+
+    [HttpGet("history/services")]
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<ServiceHistoryResponse>>>> GetServiceHistory(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var history = await _customerPortalService.GetServiceHistoryPageAsync(
+                GetCurrentUserId(),
+                pageNumber,
+                pageSize,
+                cancellationToken);
+
+            return Ok(ApiResponse<PaginatedResponse<ServiceHistoryResponse>>.Ok(history, "Service history fetched successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<PaginatedResponse<ServiceHistoryResponse>>.Fail(ex.Message));
         }
     }
 
