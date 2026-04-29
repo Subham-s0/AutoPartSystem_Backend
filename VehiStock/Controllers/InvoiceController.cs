@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 using Microsoft.AspNetCore.Mvc;
-=======
-﻿using Microsoft.AspNetCore.Mvc;
->>>>>>> main
 using VehiStock.Application.Dtos.Invoices;
 using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Infrastructure.Services;
@@ -28,7 +24,6 @@ namespace VehiStock.API.Controllers
         public async Task<IActionResult> SendInvoice([FromBody] InvoiceEmailDto dto)
         {
             if (dto == null)
-<<<<<<< HEAD
             {
                 return BadRequest(new
                 {
@@ -37,12 +32,21 @@ namespace VehiStock.API.Controllers
                 });
             }
 
-            if (string.IsNullOrWhiteSpace(dto.CustomerEmail) || !dto.CustomerEmail.Contains("@"))
+            if (string.IsNullOrWhiteSpace(dto.CustomerEmail))
             {
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Valid customer email is required"
+                    message = "Customer email is required"
+                });
+            }
+
+            if (!dto.CustomerEmail.Contains("@"))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Invalid email format"
                 });
             }
 
@@ -54,15 +58,6 @@ namespace VehiStock.API.Controllers
                     message = "Invoice number is required"
                 });
             }
-=======
-                return BadRequest("Request body is empty");
-
-            if (string.IsNullOrWhiteSpace(dto.CustomerEmail))
-                return BadRequest("Customer email is required");
-
-            if (string.IsNullOrWhiteSpace(dto.InvoiceNumber))
-                return BadRequest("Invoice number is required");
->>>>>>> main
 
             try
             {
@@ -81,32 +76,31 @@ namespace VehiStock.API.Controllers
                 return Ok(new
                 {
                     success = true,
-                    message = "Invoice sent successfully"
+                    message = "Invoice sent successfully",
+                    data = new
+                    {
+                        dto.InvoiceNumber,
+                        dto.CustomerEmail,
+                        dto.TotalAmount
+                    }
                 });
             }
-<<<<<<< HEAD
             catch (System.Net.Mail.SmtpException ex)
             {
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = "SMTP error occurred",
+                    message = "SMTP error (email not sent)",
                     error = ex.Message
                 });
             }
-=======
->>>>>>> main
             catch (Exception ex)
             {
                 return StatusCode(500, new
                 {
                     success = false,
-<<<<<<< HEAD
-                    message = "Unexpected error occurred",
+                    message = "Unexpected server error",
                     error = ex.Message
-=======
-                    message = ex.Message
->>>>>>> main
                 });
             }
         }
