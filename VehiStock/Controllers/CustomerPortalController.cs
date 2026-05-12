@@ -20,36 +20,6 @@ public class CustomerPortalController : ControllerBase
         _customerPortalService = customerPortalService;
     }
 
-    [HttpGet("vehicles")]
-    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<CustomerVehicleResponse>>>> GetVehicles(CancellationToken cancellationToken)
-    {
-        var vehicles = await _customerPortalService.GetVehiclesAsync(GetCurrentUserId(), cancellationToken);
-        return Ok(ApiResponse<IReadOnlyCollection<CustomerVehicleResponse>>.Ok(vehicles, "Vehicles fetched successfully."));
-    }
-
-    [HttpPost("appointments")]
-    public async Task<ActionResult<ApiResponse<AppointmentResponse>>> BookAppointment(
-        BookAppointmentRequest request,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var appointment = await _customerPortalService.BookAppointmentAsync(GetCurrentUserId(), request, cancellationToken);
-            return Ok(ApiResponse<AppointmentResponse>.Ok(appointment, "Appointment booked successfully."));
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ApiResponse<AppointmentResponse>.Fail(ex.Message));
-        }
-    }
-
-    [HttpGet("appointments")]
-    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<AppointmentResponse>>>> GetAppointments(CancellationToken cancellationToken)
-    {
-        var appointments = await _customerPortalService.GetAppointmentsAsync(GetCurrentUserId(), cancellationToken);
-        return Ok(ApiResponse<IReadOnlyCollection<AppointmentResponse>>.Ok(appointments, "Appointments fetched successfully."));
-    }
-
     [HttpPost("part-requests")]
     public async Task<ActionResult<ApiResponse<PartRequestResponse>>> CreatePartRequest(
         CreatePartRequestRequest request,

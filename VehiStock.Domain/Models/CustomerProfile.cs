@@ -33,5 +33,7 @@ public class CustomerProfile
 
     public ICollection<ServiceRecord> ServiceRecords { get; set; } = new List<ServiceRecord>();
 
+    public ICollection<ServiceInvoice> ServiceInvoices { get; set; } = new List<ServiceInvoice>();
+
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

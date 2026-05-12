@@ -57,7 +57,7 @@ public class AuthResponse
         return new AuthResponse
         {
             Succeeded = false,
-            Errors = errors.ToArray()
+            Errors = errors.ToList()
         };
     }
 }

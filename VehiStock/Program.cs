@@ -63,6 +63,7 @@ builder.Services.Configure<JwtSettings>(jwtSection);
 builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authentication:Google"));
 builder.Services.Configure<AdminSeedSettings>(builder.Configuration.GetSection("SeedAdmin"));
 builder.Services.Configure<AlertProcessingSettings>(builder.Configuration.GetSection("Alerts"));
+builder.Services.Configure<ImageUploadSettings>(builder.Configuration.GetSection("ImageUpload"));
 
 var jwtSettings = jwtSection.Get<JwtSettings>() ?? throw new InvalidOperationException("Jwt settings are not configured.");
 if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
@@ -96,6 +97,8 @@ authenticationBuilder.AddJwtBearer(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
 builder.Services.AddScoped<ICustomerPortalRepository, CustomerPortalRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 builder.Services.AddScoped<IStaffManagementRepository, StaffManagementRepository>();
 builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
@@ -103,10 +106,13 @@ builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
 builder.Services.AddScoped<ICustomerPortalService, CustomerPortalService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
 builder.Services.AddScoped<IStaffReportService, StaffReportService>();
+builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
 builder.Services.AddHostedService<AlertBackgroundService>();
 
 builder.Services.AddControllers();
@@ -150,6 +156,8 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+app.UseStaticFiles();
 app.UseCors(FrontendCorsPolicy);
 
 app.UseAuthentication();

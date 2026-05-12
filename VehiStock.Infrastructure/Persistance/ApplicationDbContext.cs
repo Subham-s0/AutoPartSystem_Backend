@@ -29,6 +29,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<ServiceRecord> ServiceRecords => Set<ServiceRecord>();
     public DbSet<ServiceRecordPart> ServiceRecordParts => Set<ServiceRecordPart>();
+    public DbSet<ServiceInvoice> ServiceInvoices => Set<ServiceInvoice>();
     public DbSet<Review> Reviews => Set<Review>();
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -86,6 +87,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .HasIndex(x => x.InvoiceNo)
             .IsUnique();
 
+        builder.Entity<ServiceInvoice>()
+            .HasIndex(x => x.ServiceRecordId)
+            .IsUnique();
+
         builder.Entity<CustomerProfile>()
             .Property(x => x.RegistrationSource)
             .HasConversion<string>();
@@ -117,9 +122,28 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .Property(x => x.PaymentStatus)
             .HasConversion<string>();
 
+        builder.Entity<ServiceInvoice>()
+            .Property(x => x.PaymentStatus)
+            .HasConversion<string>();
+
         builder.Entity<Payment>()
             .Property(x => x.PaymentType)
             .HasConversion<string>();
+
+        builder.Entity<Payment>()
+            .ToTable("Payments", table => table.HasCheckConstraint(
+                "CK_Payments_ExactlyOneInvoice",
+                "(\"SalesInvoiceId\" IS NOT NULL AND \"ServiceInvoiceId\" IS NULL) OR (\"SalesInvoiceId\" IS NULL AND \"ServiceInvoiceId\" IS NOT NULL)"));
+
+        builder.Entity<Payment>()
+            .HasOne(x => x.SalesInvoice)
+            .WithMany(x => x.Payments)
+            .HasForeignKey(x => x.SalesInvoiceId);
+
+        builder.Entity<Payment>()
+            .HasOne(x => x.ServiceInvoice)
+            .WithMany(x => x.Payments)
+            .HasForeignKey(x => x.ServiceInvoiceId);
 
         builder.Entity<Appointment>()
             .Property(x => x.Status)
@@ -215,6 +239,30 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
         builder.Entity<ServiceRecordPart>()
             .Property(x => x.LineTotal)
+            .HasPrecision(18, 2);
+
+        builder.Entity<ServiceInvoice>()
+            .Property(x => x.LaborCharge)
+            .HasPrecision(18, 2);
+
+        builder.Entity<ServiceInvoice>()
+            .Property(x => x.PartsCharge)
+            .HasPrecision(18, 2);
+
+        builder.Entity<ServiceInvoice>()
+            .Property(x => x.TaxAmount)
+            .HasPrecision(18, 2);
+
+        builder.Entity<ServiceInvoice>()
+            .Property(x => x.TotalAmount)
+            .HasPrecision(18, 2);
+
+        builder.Entity<ServiceInvoice>()
+            .Property(x => x.AmountPaid)
+            .HasPrecision(18, 2);
+
+        builder.Entity<ServiceInvoice>()
+            .Property(x => x.BalanceDue)
             .HasPrecision(18, 2);
 
         builder.Entity<Payment>()

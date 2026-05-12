@@ -23,11 +23,9 @@ public class Vehicle
 
     public int ManufactureYear { get; set; }
 
-    [Required]
-    public string EngineNo { get; set; } = string.Empty;
+    public string? EngineNo { get; set; }
 
-    [Required]
-    public string ChassisNo { get; set; } = string.Empty;
+    public string? ChassisNo { get; set; }
 
     [MaxLength(500)]
     public string? VehiclePhotoUrl { get; set; }
@@ -45,4 +43,6 @@ public class Vehicle
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public ICollection<ServiceRecord> ServiceRecords { get; set; } = new List<ServiceRecord>();
+
+    public ICollection<ServiceInvoice> ServiceInvoices { get; set; } = new List<ServiceInvoice>();
 }

@@ -6,10 +6,7 @@ namespace VehiStock.Application.Interfaces.IRepositories;
 public interface ICustomerPortalRepository
 {
     Task<CustomerProfile?> GetCustomerProfileByUserIdAsync(string userId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyCollection<Vehicle>> GetVehiclesByCustomerIdAsync(int customerId, CancellationToken cancellationToken = default);
     Task<Vehicle?> GetVehicleForCustomerAsync(int customerId, int vehicleId, CancellationToken cancellationToken = default);
-    Task<Appointment> CreateAppointmentAsync(Appointment appointment, CancellationToken cancellationToken = default);
-    Task<IReadOnlyCollection<Appointment>> GetAppointmentsByCustomerIdAsync(int customerId, CancellationToken cancellationToken = default);
     Task<PartRequest> CreatePartRequestAsync(PartRequest partRequest, CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<PartRequest>> GetPartRequestsByCustomerIdAsync(int customerId, CancellationToken cancellationToken = default);
     Task<ServiceRecord?> GetServiceRecordForCustomerAsync(int customerId, int serviceRecordId, CancellationToken cancellationToken = default);

@@ -86,5 +86,7 @@ public class ServiceRecord
 
     public ICollection<ServiceRecordPart> PartsUsed { get; set; } = new List<ServiceRecordPart>();
 
+    public ServiceInvoice? ServiceInvoice { get; set; }
+
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

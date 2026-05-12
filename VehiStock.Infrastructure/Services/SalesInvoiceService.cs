@@ -38,9 +38,9 @@ public class SalesInvoiceService : ISalesInvoiceService
                             Make = vehicle.Make,
                             Model = vehicle.Model
                         })
-                        .ToArray()
+                        .ToList()
                 })
-                .ToArray(),
+                .ToList(),
             Parts = parts
                 .Select(part => new SalesInvoicePartLookupResponse
                 {
@@ -50,7 +50,7 @@ public class SalesInvoiceService : ISalesInvoiceService
                     UnitPrice = part.UnitPrice,
                     StockQty = part.StockQty
                 })
-                .ToArray()
+                .ToList()
         };
     }
 
@@ -81,9 +81,9 @@ public class SalesInvoiceService : ISalesInvoiceService
             throw new InvalidOperationException("Vehicle was not found for this customer.");
         }
 
-        var partIds = request.Items.Select(x => x.PartId).Distinct().ToArray();
+        var partIds = request.Items.Select(x => x.PartId).Distinct().ToList();
         var parts = (await _salesInvoiceRepository.GetPartsByIdsAsync(partIds, cancellationToken)).ToDictionary(x => x.PartId);
-        if (parts.Count != partIds.Length)
+        if (parts.Count != partIds.Count)
         {
             throw new InvalidOperationException("One or more parts were not found.");
         }

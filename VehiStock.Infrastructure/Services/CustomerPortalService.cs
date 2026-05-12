@@ -15,58 +15,6 @@ public class CustomerPortalService : ICustomerPortalService
         _customerPortalRepository = customerPortalRepository;
     }
 
-    public async Task<IReadOnlyCollection<CustomerVehicleResponse>> GetVehiclesAsync(string userId, CancellationToken cancellationToken = default)
-    {
-        var customer = await GetCustomerProfileAsync(userId, cancellationToken);
-        var vehicles = await _customerPortalRepository.GetVehiclesByCustomerIdAsync(customer.CustomerId, cancellationToken);
-
-        return vehicles.Select(vehicle => new CustomerVehicleResponse
-        {
-            VehicleId = vehicle.VehicleId,
-            VehicleNumber = vehicle.VehicleNumber,
-            Make = vehicle.Make,
-            Model = vehicle.Model,
-            ManufactureYear = vehicle.ManufactureYear,
-            MileageKm = vehicle.MileageKm,
-            VehiclePhotoUrl = vehicle.VehiclePhotoUrl
-        }).ToArray();
-    }
-
-    public async Task<AppointmentResponse> BookAppointmentAsync(string userId, BookAppointmentRequest request, CancellationToken cancellationToken = default)
-    {
-        var customer = await GetCustomerProfileAsync(userId, cancellationToken);
-        if (request.PreferredDate < DateOnly.FromDateTime(DateTime.UtcNow.Date))
-        {
-            throw new InvalidOperationException("Preferred date cannot be in the past.");
-        }
-
-        var vehicle = await _customerPortalRepository.GetVehicleForCustomerAsync(customer.CustomerId, request.VehicleId, cancellationToken);
-        if (vehicle is null)
-        {
-            throw new InvalidOperationException("Vehicle not found for this customer.");
-        }
-
-        var appointment = new Appointment
-        {
-            CustomerId = customer.CustomerId,
-            VehicleId = vehicle.VehicleId,
-            PreferredDate = request.PreferredDate,
-            ServiceType = request.ServiceType.Trim(),
-            ProblemDescription = request.ProblemDescription.Trim(),
-            Status = AppointmentStatus.Pending
-        };
-
-        var createdAppointment = await _customerPortalRepository.CreateAppointmentAsync(appointment, cancellationToken);
-        return MapAppointment(createdAppointment);
-    }
-
-    public async Task<IReadOnlyCollection<AppointmentResponse>> GetAppointmentsAsync(string userId, CancellationToken cancellationToken = default)
-    {
-        var customer = await GetCustomerProfileAsync(userId, cancellationToken);
-        var appointments = await _customerPortalRepository.GetAppointmentsByCustomerIdAsync(customer.CustomerId, cancellationToken);
-        return appointments.Select(MapAppointment).ToArray();
-    }
-
     public async Task<PartRequestResponse> CreatePartRequestAsync(string userId, CreatePartRequestRequest request, CancellationToken cancellationToken = default)
     {
         var customer = await GetCustomerProfileAsync(userId, cancellationToken);
@@ -98,7 +46,7 @@ public class CustomerPortalService : ICustomerPortalService
     {
         var customer = await GetCustomerProfileAsync(userId, cancellationToken);
         var partRequests = await _customerPortalRepository.GetPartRequestsByCustomerIdAsync(customer.CustomerId, cancellationToken);
-        return partRequests.Select(MapPartRequest).ToArray();
+        return partRequests.Select(MapPartRequest).ToList();
     }
 
     public async Task<ReviewResponse> CreateReviewAsync(string userId, CreateReviewRequest request, CancellationToken cancellationToken = default)
@@ -148,7 +96,7 @@ public class CustomerPortalService : ICustomerPortalService
 
         return new PaginatedResponse<PurchaseHistoryResponse>
         {
-            Items = purchases.Items.Select(MapPurchaseHistory).ToArray(),
+            Items = purchases.Items.Select(MapPurchaseHistory).ToList(),
             PageNumber = purchases.PageNumber,
             PageSize = purchases.PageSize,
             TotalRecords = purchases.TotalRecords,
@@ -169,7 +117,7 @@ public class CustomerPortalService : ICustomerPortalService
 
         return new PaginatedResponse<ServiceHistoryResponse>
         {
-            Items = services.Items.Select(MapServiceHistory).ToArray(),
+            Items = services.Items.Select(MapServiceHistory).ToList(),
             PageNumber = services.PageNumber,
             PageSize = services.PageSize,
             TotalRecords = services.TotalRecords,
@@ -185,8 +133,8 @@ public class CustomerPortalService : ICustomerPortalService
 
         return new CustomerHistoryResponse
         {
-            Purchases = purchases.Select(MapPurchaseHistory).ToArray(),
-            Services = services.Select(MapServiceHistory).ToArray()
+            Purchases = purchases.Select(MapPurchaseHistory).ToList(),
+            Services = services.Select(MapServiceHistory).ToList()
         };
     }
 
@@ -199,21 +147,6 @@ public class CustomerPortalService : ICustomerPortalService
         }
 
         return customer;
-    }
-
-    private static AppointmentResponse MapAppointment(Appointment appointment)
-    {
-        return new AppointmentResponse
-        {
-            AppointmentId = appointment.AppointmentId,
-            VehicleId = appointment.VehicleId,
-            VehicleNumber = appointment.Vehicle.VehicleNumber,
-            PreferredDate = appointment.PreferredDate,
-            ServiceType = appointment.ServiceType,
-            ProblemDescription = appointment.ProblemDescription,
-            Status = appointment.Status.ToString(),
-            BookedAt = appointment.BookedAt
-        };
     }
 
     private static PartRequestResponse MapPartRequest(PartRequest partRequest)
@@ -251,7 +184,7 @@ public class CustomerPortalService : ICustomerPortalService
                 UnitPrice = item.UnitPrice,
                 DiscountAmount = item.DiscountAmount,
                 LineTotal = item.LineTotal
-            }).ToArray()
+            }).ToList()
         };
     }
 
@@ -268,6 +201,19 @@ public class CustomerPortalService : ICustomerPortalService
             PartsCharge = serviceRecord.PartsCharge,
             TotalCharge = serviceRecord.TotalCharge,
             Notes = serviceRecord.Notes,
+            ServiceInvoice = serviceRecord.ServiceInvoice is null
+                ? null
+                : new ServiceInvoiceSummaryResponse
+                {
+                    ServiceInvoiceId = serviceRecord.ServiceInvoice.ServiceInvoiceId,
+                    LaborCharge = serviceRecord.ServiceInvoice.LaborCharge,
+                    PartsCharge = serviceRecord.ServiceInvoice.PartsCharge,
+                    TaxAmount = serviceRecord.ServiceInvoice.TaxAmount,
+                    TotalAmount = serviceRecord.ServiceInvoice.TotalAmount,
+                    AmountPaid = serviceRecord.ServiceInvoice.AmountPaid,
+                    BalanceDue = serviceRecord.ServiceInvoice.BalanceDue,
+                    PaymentStatus = serviceRecord.ServiceInvoice.PaymentStatus.ToString()
+                },
             PartsUsed = serviceRecord.PartsUsed.Select(part => new ServiceHistoryPartResponse
             {
                 PartName = part.Part.PartName,
@@ -275,7 +221,7 @@ public class CustomerPortalService : ICustomerPortalService
                 Quantity = part.Quantity,
                 UnitPrice = part.UnitPrice,
                 LineTotal = part.LineTotal
-            }).ToArray(),
+            }).ToList(),
             Review = serviceRecord.Reviews.Select(review => new ReviewResponse
             {
                 ReviewId = review.ReviewId,

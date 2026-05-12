@@ -22,37 +22,10 @@ public class CustomerPortalRepository : ICustomerPortalRepository
             .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<Vehicle>> GetVehiclesByCustomerIdAsync(int customerId, CancellationToken cancellationToken = default)
-    {
-        return await _dbContext.Vehicles
-            .Where(x => x.CustomerId == customerId)
-            .OrderBy(x => x.VehicleNumber)
-            .ToListAsync(cancellationToken);
-    }
-
     public Task<Vehicle?> GetVehicleForCustomerAsync(int customerId, int vehicleId, CancellationToken cancellationToken = default)
     {
         return _dbContext.Vehicles
             .SingleOrDefaultAsync(x => x.CustomerId == customerId && x.VehicleId == vehicleId, cancellationToken);
-    }
-
-    public async Task<Appointment> CreateAppointmentAsync(Appointment appointment, CancellationToken cancellationToken = default)
-    {
-        _dbContext.Appointments.Add(appointment);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        return await _dbContext.Appointments
-            .Include(x => x.Vehicle)
-            .SingleAsync(x => x.AppointmentId == appointment.AppointmentId, cancellationToken);
-    }
-
-    public async Task<IReadOnlyCollection<Appointment>> GetAppointmentsByCustomerIdAsync(int customerId, CancellationToken cancellationToken = default)
-    {
-        return await _dbContext.Appointments
-            .Include(x => x.Vehicle)
-            .Where(x => x.CustomerId == customerId)
-            .OrderByDescending(x => x.BookedAt)
-            .ToListAsync(cancellationToken);
     }
 
     public async Task<PartRequest> CreatePartRequestAsync(PartRequest partRequest, CancellationToken cancellationToken = default)
@@ -79,6 +52,7 @@ public class CustomerPortalRepository : ICustomerPortalRepository
         return _dbContext.ServiceRecords
             .Include(x => x.Reviews)
             .Include(x => x.Vehicle)
+            .Include(x => x.ServiceInvoice)
             .SingleOrDefaultAsync(x => x.CustomerId == customerId && x.ServiceRecordId == serviceRecordId, cancellationToken);
     }
 
@@ -128,6 +102,7 @@ public class CustomerPortalRepository : ICustomerPortalRepository
             .Include(x => x.Vehicle)
             .Include(x => x.PartsUsed)
                 .ThenInclude(x => x.Part)
+            .Include(x => x.ServiceInvoice)
             .Include(x => x.Reviews)
             .Where(x => x.CustomerId == customerId)
             .OrderByDescending(x => x.ServiceDate)
@@ -166,6 +141,7 @@ public class CustomerPortalRepository : ICustomerPortalRepository
             .Include(x => x.Vehicle)
             .Include(x => x.PartsUsed)
                 .ThenInclude(x => x.Part)
+            .Include(x => x.ServiceInvoice)
             .Include(x => x.Reviews)
             .Where(x => x.CustomerId == customerId)
             .OrderByDescending(x => x.ServiceDate)

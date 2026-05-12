@@ -11,6 +11,7 @@ public class ServiceHistoryResponse
     public decimal PartsCharge { get; init; }
     public decimal TotalCharge { get; init; }
     public string? Notes { get; init; }
+    public ServiceInvoiceSummaryResponse? ServiceInvoice { get; init; }
     public IReadOnlyCollection<ServiceHistoryPartResponse> PartsUsed { get; init; } = Array.Empty<ServiceHistoryPartResponse>();
     public ReviewResponse? Review { get; init; }
 }

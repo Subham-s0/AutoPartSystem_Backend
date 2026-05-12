@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VehiStock.Infrastructure.Persistance;
@@ -11,9 +12,11 @@ using VehiStock.Infrastructure.Persistance;
 namespace VehiStock.Infrastructure.Persistance.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260512061203_MakeVehicleEngineAndChassisOptional")]
+    partial class MakeVehicleEngineAndChassisOptional
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -498,10 +501,7 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Property<int>("ReceivedByStaffId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SalesInvoiceId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("ServiceInvoiceId")
+                    b.Property<int>("SalesInvoiceId")
                         .HasColumnType("integer");
 
                     b.HasKey("PaymentId");
@@ -512,12 +512,7 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
 
                     b.HasIndex("SalesInvoiceId");
 
-                    b.HasIndex("ServiceInvoiceId");
-
-                    b.ToTable("Payments", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Payments_ExactlyOneInvoice", "(\"SalesInvoiceId\" IS NOT NULL AND \"ServiceInvoiceId\" IS NULL) OR (\"SalesInvoiceId\" IS NULL AND \"ServiceInvoiceId\" IS NOT NULL)");
-                        });
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("VehiStock.Entities.PurchaseInvoice", b =>
@@ -795,63 +790,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.HasIndex("SalesInvoiceId");
 
                     b.ToTable("SalesInvoiceItems");
-                });
-
-            modelBuilder.Entity("VehiStock.Entities.ServiceInvoice", b =>
-                {
-                    b.Property<int>("ServiceInvoiceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ServiceInvoiceId"));
-
-                    b.Property<decimal>("AmountPaid")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<decimal>("BalanceDue")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("LaborCharge")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<decimal>("PartsCharge")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("ServiceRecordId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("TaxAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int>("VehicleId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ServiceInvoiceId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("ServiceRecordId")
-                        .IsUnique();
-
-                    b.HasIndex("VehicleId");
-
-                    b.ToTable("ServiceInvoices");
                 });
 
             modelBuilder.Entity("VehiStock.Entities.ServiceRecord", b =>
@@ -1211,19 +1149,15 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
 
                     b.HasOne("VehiStock.Entities.SalesInvoice", "SalesInvoice")
                         .WithMany("Payments")
-                        .HasForeignKey("SalesInvoiceId");
-
-                    b.HasOne("VehiStock.Entities.ServiceInvoice", "ServiceInvoice")
-                        .WithMany("Payments")
-                        .HasForeignKey("ServiceInvoiceId");
+                        .HasForeignKey("SalesInvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Customer");
 
                     b.Navigation("ReceivedByStaff");
 
                     b.Navigation("SalesInvoice");
-
-                    b.Navigation("ServiceInvoice");
                 });
 
             modelBuilder.Entity("VehiStock.Entities.PurchaseInvoice", b =>
@@ -1340,33 +1274,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Navigation("SalesInvoice");
                 });
 
-            modelBuilder.Entity("VehiStock.Entities.ServiceInvoice", b =>
-                {
-                    b.HasOne("VehiStock.Entities.CustomerProfile", "Customer")
-                        .WithMany("ServiceInvoices")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VehiStock.Entities.ServiceRecord", "ServiceRecord")
-                        .WithOne("ServiceInvoice")
-                        .HasForeignKey("VehiStock.Entities.ServiceInvoice", "ServiceRecordId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VehiStock.Entities.Vehicle", "Vehicle")
-                        .WithMany("ServiceInvoices")
-                        .HasForeignKey("VehicleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("ServiceRecord");
-
-                    b.Navigation("Vehicle");
-                });
-
             modelBuilder.Entity("VehiStock.Entities.ServiceRecord", b =>
                 {
                     b.HasOne("VehiStock.Entities.Appointment", "Appointment")
@@ -1471,8 +1378,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
 
                     b.Navigation("SalesInvoices");
 
-                    b.Navigation("ServiceInvoices");
-
                     b.Navigation("ServiceRecords");
 
                     b.Navigation("Vehicles");
@@ -1504,18 +1409,11 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Navigation("Payments");
                 });
 
-            modelBuilder.Entity("VehiStock.Entities.ServiceInvoice", b =>
-                {
-                    b.Navigation("Payments");
-                });
-
             modelBuilder.Entity("VehiStock.Entities.ServiceRecord", b =>
                 {
                     b.Navigation("PartsUsed");
 
                     b.Navigation("Reviews");
-
-                    b.Navigation("ServiceInvoice");
                 });
 
             modelBuilder.Entity("VehiStock.Entities.StaffProfile", b =>
@@ -1536,8 +1434,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Navigation("PartRequests");
 
                     b.Navigation("SalesInvoices");
-
-                    b.Navigation("ServiceInvoices");
 
                     b.Navigation("ServiceRecords");
                 });

@@ -39,8 +39,8 @@ public class UserAuthService : IUserAuthService
 
     public async Task<RegisterUserResponse> RegisterUserAsync(RegisterUserRequest request, CancellationToken cancellationToken = default)
     {
-        var validationErrors = ValidateRequest(request).ToArray();
-        if (validationErrors.Length > 0)
+        var validationErrors = ValidateRequest(request).ToList();
+        if (validationErrors.Count > 0)
         {
             return RegisterUserResponse.Failure(validationErrors);
         }

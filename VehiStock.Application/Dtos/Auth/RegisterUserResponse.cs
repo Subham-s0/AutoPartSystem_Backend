@@ -39,7 +39,7 @@ public class RegisterUserResponse
         return new RegisterUserResponse
         {
             Succeeded = false,
-            Errors = errors.ToArray()
+            Errors = errors.ToList()
         };
     }
 }

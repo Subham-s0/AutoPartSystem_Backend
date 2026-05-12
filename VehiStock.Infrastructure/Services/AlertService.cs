@@ -44,7 +44,7 @@ public class AlertService : IAlertService
         var paginatedNotifications = await _alertRepository.GetNotificationsForUserAsync(userId, pageNumber, pageSize, cancellationToken);
         return new PaginatedResponse<NotificationResponse>
         {
-            Items = paginatedNotifications.Items.Select(MapNotification).ToArray(),
+            Items = paginatedNotifications.Items.Select(MapNotification).ToList(),
             PageNumber = paginatedNotifications.PageNumber,
             PageSize = paginatedNotifications.PageSize,
             TotalRecords = paginatedNotifications.TotalRecords,

@@ -28,6 +28,7 @@ packages/
 # Logs
 *.log
 logs/
+VehiStock/wwwroot/uploads/
 
 # Diagram files
 *.drawio
