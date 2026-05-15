@@ -21,11 +21,10 @@ public class NotificationsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<ApiResponse<PaginatedResponse<NotificationResponse>>>> GetNotifications(
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10,
+        [FromQuery] NotificationQueryRequest request,
         CancellationToken cancellationToken = default)
     {
-        var notifications = await _alertService.GetNotificationsAsync(GetCurrentUserId(), pageNumber, pageSize, cancellationToken);
+        var notifications = await _alertService.GetNotificationsAsync(GetCurrentUserId(), request, cancellationToken);
         return Ok(ApiResponse<PaginatedResponse<NotificationResponse>>.Ok(notifications, "Notifications fetched successfully."));
     }
 

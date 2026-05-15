@@ -64,6 +64,7 @@ builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection(
 builder.Services.Configure<AdminSeedSettings>(builder.Configuration.GetSection("SeedAdmin"));
 builder.Services.Configure<AlertProcessingSettings>(builder.Configuration.GetSection("Alerts"));
 builder.Services.Configure<ImageUploadSettings>(builder.Configuration.GetSection("ImageUpload"));
+builder.Services.Configure<KhaltiSettings>(builder.Configuration.GetSection("Khalti"));
 
 var jwtSettings = jwtSection.Get<JwtSettings>() ?? throw new InvalidOperationException("Jwt settings are not configured.");
 if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
@@ -96,7 +97,12 @@ authenticationBuilder.AddJwtBearer(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
-builder.Services.AddScoped<ICustomerPortalRepository, CustomerPortalRepository>();
+builder.Services.AddScoped<ICustomerProfileRepository, CustomerProfileRepository>();
+builder.Services.AddScoped<ICustomerHistoryRepository, CustomerHistoryRepository>();
+builder.Services.AddScoped<ICustomerServiceInvoiceRepository, CustomerServiceInvoiceRepository>();
+builder.Services.AddScoped<ICustomerPaymentRepository, CustomerPaymentRepository>();
+builder.Services.AddScoped<ICustomerPartRequestRepository, CustomerPartRequestRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IAlertRepository, AlertRepository>();
@@ -105,7 +111,12 @@ builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
 builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
-builder.Services.AddScoped<ICustomerPortalService, CustomerPortalService>();
+builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+builder.Services.AddScoped<ICustomerHistoryService, CustomerHistoryService>();
+builder.Services.AddScoped<ICustomerServiceInvoiceService, CustomerServiceInvoiceService>();
+builder.Services.AddScoped<ICustomerPaymentService, CustomerPaymentService>();
+builder.Services.AddScoped<ICustomerPartRequestService, CustomerPartRequestService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
@@ -113,6 +124,9 @@ builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
 builder.Services.AddScoped<IStaffReportService, StaffReportService>();
 builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
+builder.Services.AddScoped<IServiceInvoicePaymentService, ServiceInvoicePaymentService>();
+builder.Services.AddScoped<ISalesInvoicePaymentService, SalesInvoicePaymentService>();
+builder.Services.AddHttpClient<IKhaltiClient, KhaltiClient>();
 builder.Services.AddHostedService<AlertBackgroundService>();
 
 builder.Services.AddControllers();
@@ -167,9 +181,11 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var seedSettings = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdminSeedSettings>>().Value;
+    await dbContext.Database.MigrateAsync();
     await RoleSeeder.SeedAsync(roleManager);
     await AdminSeeder.SeedAsync(roleManager, userManager, seedSettings);
 }

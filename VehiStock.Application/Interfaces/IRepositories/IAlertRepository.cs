@@ -1,4 +1,5 @@
 using VehiStock.Application.Dtos.Common;
+using VehiStock.Application.Dtos.Notifications;
 using VehiStock.Entities;
 
 namespace VehiStock.Application.Interfaces.IRepositories;
@@ -17,8 +18,7 @@ public interface IAlertRepository
     Task AddNotificationAsync(Notification notification, CancellationToken cancellationToken = default);
     Task<PaginatedResponse<Notification>> GetNotificationsForUserAsync(
         string userId,
-        int pageNumber,
-        int pageSize,
+        NotificationQueryRequest request,
         CancellationToken cancellationToken = default);
     Task<Notification?> GetNotificationForUserAsync(int notificationId, string userId, CancellationToken cancellationToken = default);
     Task SaveChangesAsync(CancellationToken cancellationToken = default);

@@ -37,11 +37,13 @@ public class AlertService : IAlertService
 
     public async Task<PaginatedResponse<NotificationResponse>> GetNotificationsAsync(
         string userId,
-        int pageNumber,
-        int pageSize,
+        NotificationQueryRequest request,
         CancellationToken cancellationToken = default)
     {
-        var paginatedNotifications = await _alertRepository.GetNotificationsForUserAsync(userId, pageNumber, pageSize, cancellationToken);
+        request.PageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
+        request.PageSize = Math.Clamp(request.PageSize < 1 ? 10 : request.PageSize, 1, 50);
+
+        var paginatedNotifications = await _alertRepository.GetNotificationsForUserAsync(userId, request, cancellationToken);
         return new PaginatedResponse<NotificationResponse>
         {
             Items = paginatedNotifications.Items.Select(MapNotification).ToList(),

@@ -8,8 +8,7 @@ public interface IAlertService
     Task ProcessAlertsAsync(CancellationToken cancellationToken = default);
     Task<PaginatedResponse<NotificationResponse>> GetNotificationsAsync(
         string userId,
-        int pageNumber,
-        int pageSize,
+        NotificationQueryRequest request,
         CancellationToken cancellationToken = default);
     Task<bool> MarkNotificationAsReadAsync(string userId, int notificationId, CancellationToken cancellationToken = default);
 }
