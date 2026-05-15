@@ -5,6 +5,10 @@ public class PartRequestResponse
     public int PartRequestId { get; init; }
     public int? VehicleId { get; init; }
     public string? VehicleNumber { get; init; }
+    public string? VehicleMake { get; init; }
+    public string? VehicleModel { get; init; }
+    public int? VehicleManufactureYear { get; init; }
+    public string? VehiclePhotoUrl { get; init; }
     public string RequestedPartName { get; init; } = string.Empty;
     public int Quantity { get; init; }
     public string? Details { get; init; }
