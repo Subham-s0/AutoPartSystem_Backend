@@ -8,4 +8,5 @@ public interface ICustomerServiceInvoiceRepository
 {
     Task<PaginatedResponse<ServiceInvoice>> GetServiceInvoicesPageAsync(int customerId, ServiceInvoiceQueryRequest request, CancellationToken cancellationToken = default);
     Task<ServiceInvoice?> GetServiceInvoiceForCustomerAsync(int customerId, int serviceInvoiceId, CancellationToken cancellationToken = default);
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

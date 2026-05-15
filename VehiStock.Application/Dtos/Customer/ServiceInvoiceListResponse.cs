@@ -31,4 +31,6 @@ public class ServiceInvoiceListResponse
     public decimal BalanceDue { get; init; }
 
     public string PaymentStatus { get; init; } = string.Empty;
+
+    public List<ServiceHistoryPartResponse> PartsUsed { get; init; } = [];
 }

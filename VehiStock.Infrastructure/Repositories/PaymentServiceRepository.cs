@@ -7,11 +7,11 @@ using VehiStock.Infrastructure.Persistance;
 
 namespace VehiStock.Infrastructure.Repositories;
 
-public class CustomerPaymentRepository : ICustomerPaymentRepository
+public class PaymentServiceRepository : IPaymentServiceRepository
 {
     private readonly ApplicationDbContext _dbContext;
 
-    public CustomerPaymentRepository(ApplicationDbContext dbContext)
+    public PaymentServiceRepository(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -143,6 +143,12 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
     public async Task AddSalesInvoicePaymentAndSaveAsync(Payment payment, SalesInvoice salesInvoice, CancellationToken cancellationToken = default)
     {
         _dbContext.Payments.Add(payment);
+        _dbContext.SalesInvoices.Update(salesInvoice);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SaveSalesInvoiceAsync(SalesInvoice salesInvoice, CancellationToken cancellationToken = default)
+    {
         _dbContext.SalesInvoices.Update(salesInvoice);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

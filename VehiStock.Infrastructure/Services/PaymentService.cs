@@ -6,13 +6,13 @@ using VehiStock.Entities;
 
 namespace VehiStock.Infrastructure.Services;
 
-public class CustomerPaymentService : ICustomerPaymentService
+public class PaymentService : IPaymentService
 {
-    private readonly ICustomerPaymentRepository _customerPaymentRepository;
+    private readonly IPaymentServiceRepository _paymentServiceRepository;
 
-    public CustomerPaymentService(ICustomerPaymentRepository customerPaymentRepository)
+    public PaymentService(IPaymentServiceRepository paymentServiceRepository)
     {
-        _customerPaymentRepository = customerPaymentRepository;
+        _paymentServiceRepository = paymentServiceRepository;
     }
 
     public async Task<PaginatedResponse<CustomerPaymentListResponse>> GetPaymentsPageAsync(
@@ -20,11 +20,11 @@ public class CustomerPaymentService : ICustomerPaymentService
         CustomerPaymentQueryRequest request,
         CancellationToken cancellationToken = default)
     {
-        var customer = await _customerPaymentRepository.GetCustomerProfileByUserIdAsync(userId, cancellationToken)
+        var customer = await _paymentServiceRepository.GetCustomerProfileByUserIdAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException("Customer profile was not found for this account.");
 
         NormalizeQuery(request);
-        var payments = await _customerPaymentRepository.GetPaymentsPageAsync(customer.CustomerId, request, cancellationToken);
+        var payments = await _paymentServiceRepository.GetPaymentsPageAsync(customer.CustomerId, request, cancellationToken);
 
         return new PaginatedResponse<CustomerPaymentListResponse>
         {

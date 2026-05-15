@@ -74,6 +74,23 @@ public class CustomerHistoryRepository : ICustomerHistoryRepository
             .ToListAsync(cancellationToken);
     }
 
+    public Task<SalesInvoice?> GetPurchaseInvoiceDetailAsync(
+        int customerId,
+        int salesInvoiceId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.SalesInvoices
+            .Include(x => x.Vehicle)
+            .Include(x => x.Items)
+                .ThenInclude(x => x.Part)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(
+                x => x.CustomerId == customerId &&
+                     x.SalesInvoiceId == salesInvoiceId &&
+                     x.Items.Any(),
+                cancellationToken);
+    }
+
     public async Task<PaginatedResponse<ServiceRecord>> GetServiceHistoryPageAsync(
         int customerId,
         ServiceHistoryQueryRequest request,

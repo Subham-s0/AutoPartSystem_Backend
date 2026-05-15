@@ -12,6 +12,11 @@ public interface IAppointmentService
         AppointmentQueryRequest request,
         CancellationToken cancellationToken = default);
 
+    Task<AppointmentResponse> GetAppointmentAsync(
+        string userId,
+        int appointmentId,
+        CancellationToken cancellationToken = default);
+
     Task<AppointmentResponse> CancelAppointmentAsync(
         string userId,
         int appointmentId,

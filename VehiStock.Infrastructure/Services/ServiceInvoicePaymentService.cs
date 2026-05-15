@@ -8,16 +8,16 @@ namespace VehiStock.Infrastructure.Services;
 
 public class ServiceInvoicePaymentService : IServiceInvoicePaymentService
 {
-    private readonly ICustomerPaymentRepository _customerPaymentRepository;
+    private readonly IPaymentServiceRepository _paymentServiceRepository;
     private readonly IKhaltiClient _khaltiClient;
     private readonly ILogger<ServiceInvoicePaymentService> _logger;
 
     public ServiceInvoicePaymentService(
-        ICustomerPaymentRepository customerPaymentRepository,
+        IPaymentServiceRepository paymentServiceRepository,
         IKhaltiClient khaltiClient,
         ILogger<ServiceInvoicePaymentService> logger)
     {
-        _customerPaymentRepository = customerPaymentRepository;
+        _paymentServiceRepository = paymentServiceRepository;
         _khaltiClient = khaltiClient;
         _logger = logger;
     }
@@ -28,10 +28,10 @@ public class ServiceInvoicePaymentService : IServiceInvoicePaymentService
         InvoicePaymentInitiateRequest request,
         CancellationToken cancellationToken = default)
     {
-        var customer = await _customerPaymentRepository.GetCustomerProfileByUserIdAsync(userId, cancellationToken)
+        var customer = await _paymentServiceRepository.GetCustomerProfileByUserIdAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException("Customer profile was not found.");
 
-        var invoice = await _customerPaymentRepository.GetServiceInvoiceForCustomerAsync(customer.CustomerId, serviceInvoiceId, cancellationToken)
+        var invoice = await _paymentServiceRepository.GetServiceInvoiceForCustomerAsync(customer.CustomerId, serviceInvoiceId, cancellationToken)
             ?? throw new InvalidOperationException("Service invoice was not found.");
 
         if (invoice.PaymentStatus == PaymentStatus.Paid)
@@ -99,7 +99,7 @@ public class ServiceInvoicePaymentService : IServiceInvoicePaymentService
             throw new InvalidOperationException("pidx is required.");
         }
 
-        var customer = await _customerPaymentRepository.GetCustomerProfileByUserIdAsync(userId, cancellationToken)
+        var customer = await _paymentServiceRepository.GetCustomerProfileByUserIdAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException("Customer profile was not found.");
 
         var lookup = await _khaltiClient.LookupAsync(request.Pidx, cancellationToken);
@@ -132,7 +132,7 @@ public class ServiceInvoicePaymentService : IServiceInvoicePaymentService
 
         var amountPaid = lookup.TotalAmountPaisa / 100m;
 
-        if (await _customerPaymentRepository.PaymentExistsForKhaltiTransactionAsync(lookup.TransactionId, cancellationToken))
+        if (await _paymentServiceRepository.PaymentExistsForKhaltiTransactionAsync(lookup.TransactionId, cancellationToken))
         {
             return new InvoicePaymentVerifyResponse
             {
@@ -183,7 +183,7 @@ public class ServiceInvoicePaymentService : IServiceInvoicePaymentService
         decimal amountPaid,
         CancellationToken cancellationToken)
     {
-        var invoice = await _customerPaymentRepository.GetServiceInvoiceForCustomerAsync(customerId, invoiceId, cancellationToken)
+        var invoice = await _paymentServiceRepository.GetServiceInvoiceForCustomerAsync(customerId, invoiceId, cancellationToken)
             ?? throw new InvalidOperationException("Service invoice was not found for this customer.");
 
         if (amountPaid <= 0m)
@@ -219,7 +219,7 @@ public class ServiceInvoicePaymentService : IServiceInvoicePaymentService
             Notes = $"khalti_pidx:{lookup.Pidx};khalti_txn:{lookup.TransactionId}"
         };
 
-        await _customerPaymentRepository.AddPaymentAndSaveAsync(payment, invoice, cancellationToken);
+        await _paymentServiceRepository.AddPaymentAndSaveAsync(payment, invoice, cancellationToken);
 
         _logger.LogInformation(
             "Recorded Khalti payment {Pidx} for service invoice {InvoiceId} amount {Amount}. Status={Status}.",
@@ -248,7 +248,7 @@ public class ServiceInvoicePaymentService : IServiceInvoicePaymentService
         decimal amountPaid,
         CancellationToken cancellationToken)
     {
-        var invoice = await _customerPaymentRepository.GetSalesInvoiceForCustomerAsync(customerId, invoiceId, cancellationToken)
+        var invoice = await _paymentServiceRepository.GetSalesInvoiceForCustomerAsync(customerId, invoiceId, cancellationToken)
             ?? throw new InvalidOperationException("Purchase invoice was not found for this customer.");
 
         if (amountPaid <= 0m)
@@ -284,7 +284,7 @@ public class ServiceInvoicePaymentService : IServiceInvoicePaymentService
             Notes = $"khalti_pidx:{lookup.Pidx};khalti_txn:{lookup.TransactionId}"
         };
 
-        await _customerPaymentRepository.AddSalesInvoicePaymentAndSaveAsync(payment, invoice, cancellationToken);
+        await _paymentServiceRepository.AddSalesInvoicePaymentAndSaveAsync(payment, invoice, cancellationToken);
 
         _logger.LogInformation(
             "Recorded Khalti payment {Pidx} for sales invoice {InvoiceId} amount {Amount}. Status={Status}.",

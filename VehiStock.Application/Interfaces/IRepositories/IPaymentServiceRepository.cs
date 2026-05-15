@@ -4,7 +4,7 @@ using VehiStock.Entities;
 
 namespace VehiStock.Application.Interfaces.IRepositories;
 
-public interface ICustomerPaymentRepository
+public interface IPaymentServiceRepository
 {
     Task<CustomerProfile?> GetCustomerProfileByUserIdAsync(string userId, CancellationToken cancellationToken = default);
     Task<PaginatedResponse<Payment>> GetPaymentsPageAsync(int customerId, CustomerPaymentQueryRequest request, CancellationToken cancellationToken = default);
@@ -13,4 +13,5 @@ public interface ICustomerPaymentRepository
     Task<SalesInvoice?> GetSalesInvoiceForCustomerAsync(int customerId, int salesInvoiceId, CancellationToken cancellationToken = default);
     Task AddPaymentAndSaveAsync(Payment payment, ServiceInvoice serviceInvoice, CancellationToken cancellationToken = default);
     Task AddSalesInvoicePaymentAndSaveAsync(Payment payment, SalesInvoice salesInvoice, CancellationToken cancellationToken = default);
+    Task SaveSalesInvoiceAsync(SalesInvoice salesInvoice, CancellationToken cancellationToken = default);
 }

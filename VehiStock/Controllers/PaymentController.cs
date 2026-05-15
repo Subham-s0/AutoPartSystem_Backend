@@ -11,16 +11,16 @@ namespace VehiStock.Controllers;
 [ApiController]
 [Authorize(Roles = RoleNames.Customer)]
 [Route("api/customer")]
-public class CustomerPaymentController : ControllerBase
+public class PaymentController : ControllerBase
 {
-    private readonly ICustomerPaymentService _customerPaymentService;
+    private readonly IPaymentService _paymentService;
     private readonly ISalesInvoicePaymentService _salesInvoicePaymentService;
 
-    public CustomerPaymentController(
-        ICustomerPaymentService customerPaymentService,
+    public PaymentController(
+        IPaymentService paymentService,
         ISalesInvoicePaymentService salesInvoicePaymentService)
     {
-        _customerPaymentService = customerPaymentService;
+        _paymentService = paymentService;
         _salesInvoicePaymentService = salesInvoicePaymentService;
     }
 
@@ -31,7 +31,7 @@ public class CustomerPaymentController : ControllerBase
     {
         try
         {
-            var payments = await _customerPaymentService.GetPaymentsPageAsync(GetCurrentUserId(), request, cancellationToken);
+            var payments = await _paymentService.GetPaymentsPageAsync(GetCurrentUserId(), request, cancellationToken);
             return Ok(ApiResponse<PaginatedResponse<CustomerPaymentListResponse>>.Ok(payments, "Payments fetched successfully."));
         }
         catch (InvalidOperationException ex)
@@ -54,6 +54,23 @@ public class CustomerPaymentController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(ApiResponse<InvoicePaymentInitiateResponse>.Fail(ex.Message));
+        }
+    }
+
+    [HttpPatch("purchases/{salesInvoiceId:int}/loyalty")]
+    public async Task<ActionResult<ApiResponse<SalesInvoiceLoyaltyResponse>>> SetPurchaseInvoiceLoyalty(
+        int salesInvoiceId,
+        [FromBody] SetSalesInvoiceLoyaltyRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var updated = await _salesInvoicePaymentService.SetLoyaltyAsync(GetCurrentUserId(), salesInvoiceId, request, cancellationToken);
+            return Ok(ApiResponse<SalesInvoiceLoyaltyResponse>.Ok(updated, "Purchase invoice loyalty updated successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<SalesInvoiceLoyaltyResponse>.Fail(ex.Message));
         }
     }
 

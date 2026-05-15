@@ -6,7 +6,7 @@ namespace VehiStock.Infrastructure.Services;
 
 public interface IServiceInvoiceService
 {
-    Task<ServiceInvoiceResponse> CreateAsync(int serviceRecordId, decimal discountPercent = 0m, CancellationToken cancellationToken = default);
+    Task<ServiceInvoiceResponse> CreateAsync(int serviceRecordId, CancellationToken cancellationToken = default);
 }
 
 public class ServiceInvoiceService : IServiceInvoiceService
@@ -20,7 +20,6 @@ public class ServiceInvoiceService : IServiceInvoiceService
 
     public async Task<ServiceInvoiceResponse> CreateAsync(
         int serviceRecordId,
-        decimal discountPercent = 0m,
         CancellationToken cancellationToken = default)
     {
         var serviceRecord = await _serviceRecordRepository.GetByIdAsync(serviceRecordId, cancellationToken);
@@ -40,8 +39,7 @@ public class ServiceInvoiceService : IServiceInvoiceService
         }
 
         var subtotal = serviceRecord.LaborCharge + serviceRecord.PartsCharge;
-        var normalizedDiscountPercent = Math.Clamp(discountPercent, 0m, 100m);
-        var discountAmount = Math.Round(subtotal * (normalizedDiscountPercent / 100m), 2, MidpointRounding.AwayFromZero);
+        var discountAmount = 0m;
         var taxAmount = 0m;
         var totalAmount = subtotal - discountAmount + taxAmount;
 
@@ -52,7 +50,7 @@ public class ServiceInvoiceService : IServiceInvoiceService
             VehicleId = serviceRecord.VehicleId,
             LaborCharge = serviceRecord.LaborCharge,
             PartsCharge = serviceRecord.PartsCharge,
-            DiscountPercent = normalizedDiscountPercent,
+            DiscountPercent = 0m,
             TaxAmount = taxAmount,
             TotalAmount = totalAmount,
             AmountPaid = 0m,

@@ -21,11 +21,7 @@ public class CustomerServiceInvoiceRepository : ICustomerServiceInvoiceRepositor
         ServiceInvoiceQueryRequest request,
         CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.ServiceInvoices
-            .Include(x => x.Vehicle)
-            .Include(x => x.ServiceRecord)
-                .ThenInclude(x => x.StaffMember)
-                    .ThenInclude(x => x.User)
+        var query = BuildCustomerInvoiceQuery()
             .Where(x => x.CustomerId == customerId)
             .AsQueryable();
 
@@ -63,13 +59,27 @@ public class CustomerServiceInvoiceRepository : ICustomerServiceInvoiceRepositor
 
     public Task<ServiceInvoice?> GetServiceInvoiceForCustomerAsync(int customerId, int serviceInvoiceId, CancellationToken cancellationToken = default)
     {
+        return BuildCustomerInvoiceQuery()
+            .FirstOrDefaultAsync(
+                x => x.CustomerId == customerId && x.ServiceInvoiceId == serviceInvoiceId,
+                cancellationToken);
+    }
+
+    public Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private IQueryable<ServiceInvoice> BuildCustomerInvoiceQuery()
+    {
         return _dbContext.ServiceInvoices
             .Include(x => x.Vehicle)
             .Include(x => x.ServiceRecord)
                 .ThenInclude(x => x.StaffMember)
-            .FirstOrDefaultAsync(
-                x => x.CustomerId == customerId && x.ServiceInvoiceId == serviceInvoiceId,
-                cancellationToken);
+                    .ThenInclude(x => x.User)
+            .Include(x => x.ServiceRecord)
+                .ThenInclude(x => x.PartsUsed)
+                    .ThenInclude(x => x.Part);
     }
 
     private static IQueryable<ServiceInvoice> ApplyServiceInvoiceSorting(IQueryable<ServiceInvoice> query, List<SortRequest> sorts)

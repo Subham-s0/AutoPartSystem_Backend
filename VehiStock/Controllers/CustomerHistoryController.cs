@@ -36,6 +36,25 @@ public class CustomerHistoryController : ControllerBase
         }
     }
 
+    [HttpGet("purchases/{salesInvoiceId:int}")]
+    public async Task<ActionResult<ApiResponse<PurchaseHistoryResponse>>> GetPurchaseHistoryDetail(
+        int salesInvoiceId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var purchase = await _customerHistoryService.GetPurchaseHistoryDetailAsync(
+                GetCurrentUserId(),
+                salesInvoiceId,
+                cancellationToken);
+            return Ok(ApiResponse<PurchaseHistoryResponse>.Ok(purchase, "Purchase invoice fetched successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ApiResponse<PurchaseHistoryResponse>.Fail(ex.Message));
+        }
+    }
+
     [HttpGet("services")]
     public async Task<ActionResult<ApiResponse<PaginatedResponse<ServiceHistoryResponse>>>> GetServiceHistory(
         [FromQuery] ServiceHistoryQueryRequest request,

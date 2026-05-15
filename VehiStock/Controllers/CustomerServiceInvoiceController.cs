@@ -56,6 +56,27 @@ public class CustomerServiceInvoiceController : ControllerBase
         }
     }
 
+    [HttpPatch("{serviceInvoiceId:int}/loyalty")]
+    public async Task<ActionResult<ApiResponse<ServiceInvoiceListResponse>>> SetServiceInvoiceLoyalty(
+        int serviceInvoiceId,
+        [FromBody] SetServiceInvoiceLoyaltyRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var invoice = await _customerServiceInvoiceService.SetLoyaltyAsync(
+                GetCurrentUserId(),
+                serviceInvoiceId,
+                request,
+                cancellationToken);
+            return Ok(ApiResponse<ServiceInvoiceListResponse>.Ok(invoice, "Service invoice loyalty updated successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<ServiceInvoiceListResponse>.Fail(ex.Message));
+        }
+    }
+
     [HttpPost("{serviceInvoiceId:int}/payments/initiate")]
     public async Task<ActionResult<ApiResponse<InvoicePaymentInitiateResponse>>> InitiateServiceInvoicePayment(
         int serviceInvoiceId,

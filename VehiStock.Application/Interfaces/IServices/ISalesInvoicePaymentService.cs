@@ -9,4 +9,10 @@ public interface ISalesInvoicePaymentService
         int salesInvoiceId,
         InvoicePaymentInitiateRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<SalesInvoiceLoyaltyResponse> SetLoyaltyAsync(
+        string userId,
+        int salesInvoiceId,
+        SetSalesInvoiceLoyaltyRequest request,
+        CancellationToken cancellationToken = default);
 }

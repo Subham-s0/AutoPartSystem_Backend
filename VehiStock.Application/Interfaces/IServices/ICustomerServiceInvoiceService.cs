@@ -7,4 +7,5 @@ public interface ICustomerServiceInvoiceService
 {
     Task<PaginatedResponse<ServiceInvoiceListResponse>> GetServiceInvoicesPageAsync(string userId, ServiceInvoiceQueryRequest request, CancellationToken cancellationToken = default);
     Task<ServiceInvoiceListResponse> GetServiceInvoiceDetailAsync(string userId, int serviceInvoiceId, CancellationToken cancellationToken = default);
+    Task<ServiceInvoiceListResponse> SetLoyaltyAsync(string userId, int serviceInvoiceId, SetServiceInvoiceLoyaltyRequest request, CancellationToken cancellationToken = default);
 }

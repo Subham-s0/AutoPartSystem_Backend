@@ -65,6 +65,25 @@ public class AppointmentService : IAppointmentService
         };
     }
 
+    public async Task<AppointmentResponse> GetAppointmentAsync(
+        string userId,
+        int appointmentId,
+        CancellationToken cancellationToken = default)
+    {
+        var customer = await GetCustomerProfileAsync(userId, cancellationToken);
+        var appointment = await _appointmentRepository.GetAppointmentForCustomerAsync(
+            customer.CustomerId,
+            appointmentId,
+            cancellationToken);
+
+        if (appointment is null)
+        {
+            throw new InvalidOperationException("Appointment not found for this customer.");
+        }
+
+        return MapAppointment(appointment);
+    }
+
     public async Task<AppointmentResponse> CancelAppointmentAsync(
         string userId,
         int appointmentId,

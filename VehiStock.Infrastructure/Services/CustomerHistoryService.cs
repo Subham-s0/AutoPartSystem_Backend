@@ -38,6 +38,23 @@ public class CustomerHistoryService : ICustomerHistoryService
         };
     }
 
+    public async Task<PurchaseHistoryResponse> GetPurchaseHistoryDetailAsync(
+        string userId,
+        int salesInvoiceId,
+        CancellationToken cancellationToken = default)
+    {
+        var customer = await GetCustomerAsync(userId, cancellationToken);
+        var purchase = await _customerHistoryRepository.GetPurchaseInvoiceDetailAsync(
+            customer.CustomerId,
+            salesInvoiceId,
+            cancellationToken);
+
+        if (purchase is null)
+            throw new InvalidOperationException("Purchase invoice was not found for this customer.");
+
+        return MapPurchaseHistory(purchase);
+    }
+
     public async Task<PaginatedResponse<ServiceHistoryResponse>> GetServiceHistoryPageAsync(
         string userId,
         ServiceHistoryQueryRequest request,
@@ -102,6 +119,10 @@ public class CustomerHistoryService : ICustomerHistoryService
             InvoiceNo = salesInvoice.InvoiceNo,
             InvoiceDate = salesInvoice.InvoiceDate,
             VehicleNumber = salesInvoice.Vehicle.VehicleNumber,
+            Subtotal = salesInvoice.Subtotal,
+            DiscountPercent = salesInvoice.DiscountPercent,
+            DiscountAmount = salesInvoice.DiscountAmount,
+            TaxAmount = salesInvoice.TaxAmount,
             TotalAmount = salesInvoice.TotalAmount,
             AmountPaid = salesInvoice.AmountPaid,
             BalanceDue = salesInvoice.BalanceDue,

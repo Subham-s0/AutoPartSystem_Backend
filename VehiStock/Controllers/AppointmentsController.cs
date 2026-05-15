@@ -56,6 +56,26 @@ public class AppointmentsController : ControllerBase
         }
     }
 
+    [HttpGet("{appointmentId:int}")]
+    public async Task<ActionResult<ApiResponse<AppointmentResponse>>> GetAppointment(
+        int appointmentId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var appointment = await _appointmentService.GetAppointmentAsync(
+                GetCurrentUserId(),
+                appointmentId,
+                cancellationToken);
+
+            return Ok(ApiResponse<AppointmentResponse>.Ok(appointment, "Appointment fetched successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ApiResponse<AppointmentResponse>.Fail(ex.Message));
+        }
+    }
+
     [HttpPatch("{appointmentId:int}/cancel")]
     public async Task<ActionResult<ApiResponse<AppointmentResponse>>> CancelAppointment(
         int appointmentId,
