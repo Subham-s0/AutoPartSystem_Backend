@@ -131,7 +131,7 @@ public class AppointmentService : IAppointmentService
             PageSize = Math.Clamp(request.PageSize, 1, 100),
             SearchText = string.IsNullOrWhiteSpace(request.SearchText) ? null : request.SearchText.Trim(),
             Status = string.IsNullOrWhiteSpace(request.Status) ? null : request.Status.Trim(),
-            SortBy = string.IsNullOrWhiteSpace(request.SortBy) ? "newest" : request.SortBy.Trim()
+            Sorts = request.Sorts
         };
     }
 }

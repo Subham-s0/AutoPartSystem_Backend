@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
-namespace VehiStock.Dtos.Customer;
+namespace VehiStock.Application.Dtos.Customer;
 
-public class CreateVehicleFormRequest : IValidatableObject
+public class UpdateVehicleFormRequest : IValidatableObject
 {
     [Required]
     [MaxLength(50)]
@@ -32,6 +33,8 @@ public class CreateVehicleFormRequest : IValidatableObject
     public string? Notes { get; set; }
 
     public IFormFile? VehiclePhoto { get; set; }
+
+    public bool RemoveVehiclePhoto { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

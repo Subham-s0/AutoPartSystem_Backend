@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using VehiStock.Application.Dtos.Common;
+using VehiStock.Application.Dtos.Customer;
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Entities;
 using VehiStock.Infrastructure.Persistance;
@@ -20,12 +22,39 @@ public class VehicleRepository : IVehicleRepository
             .SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<Vehicle>> GetVehiclesByCustomerIdAsync(int customerId, CancellationToken cancellationToken = default)
+    public Task<CustomerProfile?> GetCustomerProfileByIdAsync(int customerId, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Vehicles
+        return _dbContext.CustomerProfiles
+            .SingleOrDefaultAsync(x => x.CustomerId == customerId, cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<Vehicle>> GetVehiclesForCustomerQueryAsync(
+        int customerId,
+        VehicleQueryRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Vehicles
             .Where(x => x.CustomerId == customerId)
-            .OrderBy(x => x.VehicleNumber)
-            .ToListAsync(cancellationToken);
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(request.SearchText))
+        {
+            var searchText = request.SearchText.Trim().ToLower();
+            var yearSearch = searchText.All(char.IsDigit) ? searchText : null;
+
+            query = query.Where(x =>
+                x.VehicleNumber.ToLower().Contains(searchText) ||
+                x.Make.ToLower().Contains(searchText) ||
+                x.Model.ToLower().Contains(searchText) ||
+                (x.EngineNo != null && x.EngineNo.ToLower().Contains(searchText)) ||
+                (x.ChassisNo != null && x.ChassisNo.ToLower().Contains(searchText)) ||
+                (x.Notes != null && x.Notes.ToLower().Contains(searchText)) ||
+                (yearSearch != null && x.ManufactureYear.ToString().Contains(yearSearch)));
+        }
+
+        query = ApplySorting(query, request.Sorts);
+
+        return await query.ToListAsync(cancellationToken);
     }
 
     public Task<Vehicle?> GetVehicleForCustomerAsync(int customerId, int vehicleId, CancellationToken cancellationToken = default)
@@ -67,5 +96,35 @@ public class VehicleRepository : IVehicleRepository
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static IQueryable<Vehicle> ApplySorting(IQueryable<Vehicle> query, List<SortRequest> sorts)
+    {
+        if (sorts.Count == 0)
+        {
+            return query.OrderByDescending(x => x.MileageKm).ThenBy(x => x.VehicleNumber);
+        }
+
+        IOrderedQueryable<Vehicle>? ordered = null;
+
+        foreach (var sort in sorts)
+        {
+            var asc = sort.SortDirection == SortDirection.Asc;
+
+            ordered = sort.SortBy.Trim().ToLowerInvariant() switch
+            {
+                "mileagekm" or "mileage" => ordered is null
+                    ? asc ? query.OrderBy(x => x.MileageKm) : query.OrderByDescending(x => x.MileageKm)
+                    : asc ? ordered.ThenBy(x => x.MileageKm) : ordered.ThenByDescending(x => x.MileageKm),
+                "manufactureyear" or "year" => ordered is null
+                    ? asc ? query.OrderBy(x => x.ManufactureYear) : query.OrderByDescending(x => x.ManufactureYear)
+                    : asc ? ordered.ThenBy(x => x.ManufactureYear) : ordered.ThenByDescending(x => x.ManufactureYear),
+                _ => ordered is null
+                    ? asc ? query.OrderBy(x => x.MileageKm) : query.OrderByDescending(x => x.MileageKm)
+                    : asc ? ordered.ThenBy(x => x.MileageKm) : ordered.ThenByDescending(x => x.MileageKm),
+            };
+        }
+
+        return ordered!.ThenBy(x => x.VehicleNumber);
     }
 }

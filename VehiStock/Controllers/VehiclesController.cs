@@ -5,7 +5,6 @@ using VehiStock.Application.Dtos.Common;
 using VehiStock.Application.Dtos.Customer;
 using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Domain.Constants;
-using VehiStock.Dtos.Customer;
 
 namespace VehiStock.Controllers;
 
@@ -23,9 +22,10 @@ public class VehiclesController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IReadOnlyCollection<CustomerVehicleResponse>>>> GetVehicles(
+        [FromQuery] VehicleQueryRequest? query,
         CancellationToken cancellationToken)
     {
-        var vehicles = await _vehicleService.GetVehiclesAsync(GetCurrentUserId(), cancellationToken);
+        var vehicles = await _vehicleService.GetVehiclesAsync(GetCurrentUserId(), query ?? new VehicleQueryRequest(), cancellationToken);
         return Ok(ApiResponse<IReadOnlyCollection<CustomerVehicleResponse>>.Ok(vehicles, "Vehicles fetched successfully."));
     }
 

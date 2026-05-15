@@ -1,3 +1,4 @@
+using VehiStock.Application.Dtos.Common;
 using VehiStock.Application.Dtos.Customer;
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Application.Interfaces.IServices;
@@ -20,10 +21,34 @@ public class VehicleService : IVehicleService
         _imageStorageService = imageStorageService;
     }
 
-    public async Task<IReadOnlyCollection<CustomerVehicleResponse>> GetVehiclesAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<CustomerVehicleResponse>> GetVehiclesAsync(
+        string userId,
+        VehicleQueryRequest query,
+        CancellationToken cancellationToken = default)
     {
         var customer = await GetCustomerProfileAsync(userId, cancellationToken);
-        var vehicles = await _vehicleRepository.GetVehiclesByCustomerIdAsync(customer.CustomerId, cancellationToken);
+        var vehicles = await _vehicleRepository.GetVehiclesForCustomerQueryAsync(
+            customer.CustomerId,
+            NormalizeVehicleQuery(query),
+            cancellationToken);
+        return vehicles.Select(MapVehicle).ToList();
+    }
+
+    public async Task<IReadOnlyCollection<CustomerVehicleResponse>> GetVehiclesForCustomerAsync(
+        int customerId,
+        VehicleQueryRequest query,
+        CancellationToken cancellationToken = default)
+    {
+        var customer = await _vehicleRepository.GetCustomerProfileByIdAsync(customerId, cancellationToken);
+        if (customer is null)
+        {
+            throw new InvalidOperationException("Customer was not found.");
+        }
+
+        var vehicles = await _vehicleRepository.GetVehiclesForCustomerQueryAsync(
+            customerId,
+            NormalizeVehicleQuery(query),
+            cancellationToken);
         return vehicles.Select(MapVehicle).ToList();
     }
 
@@ -182,6 +207,24 @@ public class VehicleService : IVehicleService
             MileageKm = vehicle.MileageKm,
             Notes = vehicle.Notes
         };
+    }
+
+    private static VehicleQueryRequest NormalizeVehicleQuery(VehicleQueryRequest query)
+    {
+        var normalized = new VehicleQueryRequest
+        {
+            SearchText = string.IsNullOrWhiteSpace(query.SearchText) ? null : query.SearchText.Trim(),
+            Sorts = query.Sorts
+                .Where(s => !string.IsNullOrWhiteSpace(s.SortBy))
+                .Select(s => new SortRequest
+                {
+                    SortBy = s.SortBy.Trim(),
+                    SortDirection = s.SortDirection
+                })
+                .ToList()
+        };
+
+        return normalized;
     }
 
     private static string? NormalizeOptionalText(string? value)

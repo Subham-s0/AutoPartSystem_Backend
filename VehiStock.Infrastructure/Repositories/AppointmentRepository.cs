@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VehiStock.Application.Dtos.Common;
 using VehiStock.Application.Dtos.Customer;
+using static VehiStock.Application.Dtos.Common.SortDirection;
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Entities;
 using VehiStock.Infrastructure.Persistance;
@@ -83,7 +84,7 @@ public class AppointmentRepository : IAppointmentRepository
             query = query.Where(x => x.Status == status);
         }
 
-        query = ApplySorting(query, request.SortBy);
+        query = ApplySorting(query, request.Sorts);
 
         var totalRecords = await query.CountAsync(cancellationToken);
         var items = await query
@@ -101,18 +102,33 @@ public class AppointmentRepository : IAppointmentRepository
         };
     }
 
-    private static IQueryable<Appointment> ApplySorting(IQueryable<Appointment> query, string? sortBy)
+    private static IQueryable<Appointment> ApplySorting(IQueryable<Appointment> query, List<SortRequest> sorts)
     {
-        return sortBy?.Trim().ToLowerInvariant() switch
+        if (sorts.Count == 0)
         {
-            "oldest" => query.OrderBy(x => x.BookedAt).ThenBy(x => x.AppointmentId),
-            "preferreddate" or "preferreddateasc" => query
-                .OrderBy(x => x.PreferredDate)
-                .ThenByDescending(x => x.BookedAt),
-            "preferreddatedesc" => query
-                .OrderByDescending(x => x.PreferredDate)
-                .ThenByDescending(x => x.BookedAt),
-            _ => query.OrderByDescending(x => x.BookedAt).ThenByDescending(x => x.AppointmentId)
-        };
+            return query.OrderByDescending(x => x.BookedAt).ThenByDescending(x => x.AppointmentId);
+        }
+
+        IOrderedQueryable<Appointment>? ordered = null;
+
+        foreach (var sort in sorts)
+        {
+            var asc = sort.SortDirection == SortDirection.Asc;
+
+            ordered = sort.SortBy.Trim().ToLowerInvariant() switch
+            {
+                "preferreddate" => ordered is null
+                    ? asc ? query.OrderBy(x => x.PreferredDate) : query.OrderByDescending(x => x.PreferredDate)
+                    : asc ? ordered.ThenBy(x => x.PreferredDate) : ordered.ThenByDescending(x => x.PreferredDate),
+                "status" => ordered is null
+                    ? asc ? query.OrderBy(x => x.Status) : query.OrderByDescending(x => x.Status)
+                    : asc ? ordered.ThenBy(x => x.Status) : ordered.ThenByDescending(x => x.Status),
+                _ => ordered is null
+                    ? asc ? query.OrderBy(x => x.BookedAt) : query.OrderByDescending(x => x.BookedAt)
+                    : asc ? ordered.ThenBy(x => x.BookedAt) : ordered.ThenByDescending(x => x.BookedAt),
+            };
+        }
+
+        return ordered!;
     }
 }
