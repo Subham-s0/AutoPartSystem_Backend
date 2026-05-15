@@ -26,6 +26,8 @@ public class ServiceRecord
 
     public DateOnly ServiceDate { get; set; }
 
+    public ServiceRecordStatus Status { get; set; } = ServiceRecordStatus.Open;
+
     [Required]
     public string Diagnosis { get; set; } = string.Empty;
 

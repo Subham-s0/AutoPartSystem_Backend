@@ -91,6 +91,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .HasIndex(x => x.ServiceRecordId)
             .IsUnique();
 
+        builder.Entity<Review>()
+            .HasIndex(x => new { x.CustomerId, x.ServiceRecordId })
+            .IsUnique();
+
         builder.Entity<CustomerProfile>()
             .Property(x => x.RegistrationSource)
             .HasConversion<string>();
@@ -148,6 +152,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<Appointment>()
             .Property(x => x.Status)
             .HasConversion<string>();
+
+        builder.Entity<ServiceRecord>()
+            .Property(x => x.Status)
+            .HasConversion<string>()
+            .HasDefaultValue(ServiceRecordStatus.Open)
+            .HasSentinel(ServiceRecordStatus.Open);
 
         builder.Entity<Part>()
             .Property(x => x.UnitCost)
@@ -248,6 +258,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<ServiceInvoice>()
             .Property(x => x.PartsCharge)
             .HasPrecision(18, 2);
+
+        builder.Entity<ServiceInvoice>()
+            .Property(x => x.DiscountPercent)
+            .HasPrecision(5, 2);
 
         builder.Entity<ServiceInvoice>()
             .Property(x => x.TaxAmount)

@@ -8,6 +8,7 @@ public class ServiceInvoice
 {
     private decimal _laborCharge;
     private decimal _partsCharge;
+    private decimal _discountPercent;
     private decimal _taxAmount;
     private decimal _totalAmount;
     private decimal _amountPaid;
@@ -50,6 +51,20 @@ public class ServiceInvoice
             }
 
             _partsCharge = value;
+        }
+    }
+
+    public decimal DiscountPercent
+    {
+        get => _discountPercent;
+        set
+        {
+            if (value < 0 || value > 100)
+            {
+                throw new ArgumentOutOfRangeException(nameof(DiscountPercent), "DiscountPercent must be between 0 and 100.");
+            }
+
+            _discountPercent = value;
         }
     }
 

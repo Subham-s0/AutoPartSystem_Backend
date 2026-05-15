@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VehiStock.Infrastructure.Persistance;
@@ -11,9 +12,11 @@ using VehiStock.Infrastructure.Persistance;
 namespace VehiStock.Infrastructure.Persistance.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260514185629_AddUniqueReviewPerCustomerService")]
+    partial class AddUniqueReviewPerCustomerService
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -495,6 +498,9 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("ReceivedByStaffId")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("SalesInvoiceId")
                         .HasColumnType("integer");
 
@@ -504,6 +510,8 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.HasKey("PaymentId");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("ReceivedByStaffId");
 
                     b.HasIndex("SalesInvoiceId");
 
@@ -812,10 +820,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("DiscountPercent")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)");
-
                     b.Property<decimal>("LaborCharge")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -888,12 +892,6 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
 
                     b.Property<int>("StaffMemberId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("Open");
 
                     b.Property<decimal>("TotalCharge")
                         .HasPrecision(18, 2)
@@ -1209,6 +1207,12 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("VehiStock.Entities.StaffProfile", "ReceivedByStaff")
+                        .WithMany("ReceivedPayments")
+                        .HasForeignKey("ReceivedByStaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("VehiStock.Entities.SalesInvoice", "SalesInvoice")
                         .WithMany("Payments")
                         .HasForeignKey("SalesInvoiceId");
@@ -1218,6 +1222,8 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
                         .HasForeignKey("ServiceInvoiceId");
 
                     b.Navigation("Customer");
+
+                    b.Navigation("ReceivedByStaff");
 
                     b.Navigation("SalesInvoice");
 
@@ -1519,6 +1525,8 @@ namespace VehiStock.Infrastructure.Persistance.Migrations
             modelBuilder.Entity("VehiStock.Entities.StaffProfile", b =>
                 {
                     b.Navigation("AssignedAppointments");
+
+                    b.Navigation("ReceivedPayments");
 
                     b.Navigation("SalesInvoices");
 
