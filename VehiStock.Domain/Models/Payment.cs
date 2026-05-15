@@ -18,9 +18,6 @@ public class Payment
     [Required]
     public int CustomerId { get; set; }
 
-    [Required]
-    public int ReceivedByStaffId { get; set; }
-
     public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
 
     public PaymentType PaymentType { get; set; }
@@ -46,6 +43,4 @@ public class Payment
     public ServiceInvoice? ServiceInvoice { get; set; }
 
     public CustomerProfile Customer { get; set; } = null!;
-
-    public StaffProfile ReceivedByStaff { get; set; } = null!;
 }

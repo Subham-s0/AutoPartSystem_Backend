@@ -172,7 +172,6 @@ public class SalesInvoiceService : ISalesInvoiceService
             {
                 SalesInvoice = salesInvoice,
                 CustomerId = customer.CustomerId,
-                ReceivedByStaffId = staffProfile.StaffMemberId,
                 PaymentType = request.PaymentType,
                 Amount = request.AmountPaid
             };
