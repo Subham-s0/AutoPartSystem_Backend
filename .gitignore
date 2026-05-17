@@ -44,3 +44,7 @@ secrets.json
 Thumbs.db
 Desktop.ini
 *.docx
+
+# Node.js
+node_modules/
+
