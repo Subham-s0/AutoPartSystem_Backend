@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VehiStock.Application.Dtos.Common;
+using VehiStock.Application.Dtos.Notifications;
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Entities;
 using VehiStock.Infrastructure.Persistance;
@@ -65,16 +66,42 @@ public class AlertRepository : IAlertRepository
 
     public async Task<PaginatedResponse<Notification>> GetNotificationsForUserAsync(
         string userId,
-        int pageNumber,
-        int pageSize,
+        NotificationQueryRequest request,
         CancellationToken cancellationToken = default)
     {
-        var normalizedPageNumber = pageNumber < 1 ? 1 : pageNumber;
-        var normalizedPageSize = pageSize < 1 ? 20 : pageSize;
+        var normalizedPageNumber = request.PageNumber < 1 ? 1 : request.PageNumber;
+        var normalizedPageSize = request.PageSize < 1 ? 10 : Math.Min(request.PageSize, 50);
 
         var query = _dbContext.Notifications
             .Where(x => x.UserId == userId)
-            .OrderByDescending(x => x.CreatedAt);
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(request.NotificationType) &&
+            Enum.TryParse<NotificationType>(request.NotificationType.Trim(), true, out var notificationType))
+        {
+            query = query.Where(x => x.NotificationType == notificationType);
+        }
+
+        if (request.IsRead.HasValue)
+        {
+            query = query.Where(x => x.IsRead == request.IsRead.Value);
+        }
+
+        if (request.FromDate.HasValue)
+        {
+            var fromUtc = request.FromDate.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            query = query.Where(x => x.CreatedAt >= fromUtc);
+        }
+
+        if (request.ToDate.HasValue)
+        {
+            var toUtc = request.ToDate.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+            query = query.Where(x => x.CreatedAt <= toUtc);
+        }
+
+        query = query
+            .OrderByDescending(x => x.CreatedAt)
+            .ThenByDescending(x => x.NotificationId);
 
         var totalRecords = await query.CountAsync(cancellationToken);
         var items = await query

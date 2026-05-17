@@ -26,6 +26,8 @@ public class ServiceRecord
 
     public DateOnly ServiceDate { get; set; }
 
+    public ServiceRecordStatus Status { get; set; } = ServiceRecordStatus.Open;
+
     [Required]
     public string Diagnosis { get; set; } = string.Empty;
 
@@ -85,6 +87,8 @@ public class ServiceRecord
     public StaffProfile StaffMember { get; set; } = null!;
 
     public ICollection<ServiceRecordPart> PartsUsed { get; set; } = new List<ServiceRecordPart>();
+
+    public ServiceInvoice? ServiceInvoice { get; set; }
 
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

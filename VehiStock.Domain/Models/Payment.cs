@@ -11,14 +11,12 @@ public class Payment
     [Key]
     public int PaymentId { get; set; }
 
-    [Required]
-    public int SalesInvoiceId { get; set; }
+    public int? SalesInvoiceId { get; set; }
+
+    public int? ServiceInvoiceId { get; set; }
 
     [Required]
     public int CustomerId { get; set; }
-
-    [Required]
-    public int ReceivedByStaffId { get; set; }
 
     public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
 
@@ -40,9 +38,9 @@ public class Payment
 
     public string? Notes { get; set; }
 
-    public SalesInvoice SalesInvoice { get; set; } = null!;
+    public SalesInvoice? SalesInvoice { get; set; }
+
+    public ServiceInvoice? ServiceInvoice { get; set; }
 
     public CustomerProfile Customer { get; set; } = null!;
-
-    public StaffProfile ReceivedByStaff { get; set; } = null!;
 }

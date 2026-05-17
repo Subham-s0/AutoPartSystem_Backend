@@ -7,6 +7,8 @@ public interface ISalesInvoiceRepository
 {
     Task<StaffProfile?> GetStaffProfileByUserIdAsync(string userId, CancellationToken cancellationToken = default);
     Task<bool> InvoiceExistsAsync(string invoiceNo, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<CustomerProfile>> GetCustomersWithVehiclesAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<Part>> GetAvailablePartsAsync(CancellationToken cancellationToken = default);
     Task<CustomerProfile?> GetCustomerAsync(int customerId, CancellationToken cancellationToken = default);
     Task<Vehicle?> GetVehicleForCustomerAsync(int customerId, int vehicleId, CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<Part>> GetPartsByIdsAsync(IReadOnlyCollection<int> partIds, CancellationToken cancellationToken = default);

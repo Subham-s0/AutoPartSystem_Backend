@@ -18,11 +18,32 @@ using VehiStock.Infrastructure.Services;
 using VehiStock.Infrastructure.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
+const string FrontendCorsPolicy = "FrontendCorsPolicy";
 
 #region DB
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 #endregion
+
+var allowedCorsOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173"
+    ];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =>
+    {
+        policy
+            .WithOrigins(allowedCorsOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 #region IDENTITY
 builder.Services
@@ -40,6 +61,9 @@ builder.Services
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.Configure<AdminSeedSettings>(builder.Configuration.GetSection("SeedAdmin"));
+builder.Services.Configure<AlertProcessingSettings>(builder.Configuration.GetSection("Alerts"));
+builder.Services.Configure<ImageUploadSettings>(builder.Configuration.GetSection("ImageUpload"));
+builder.Services.Configure<KhaltiSettings>(builder.Configuration.GetSection("Khalti"));
 #endregion
 
 #region JWT
@@ -82,7 +106,14 @@ builder.Services.AddCors(opt =>
 
 #region SERVICES & REPOSITORIES
 builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
-builder.Services.AddScoped<ICustomerPortalRepository, CustomerPortalRepository>();
+builder.Services.AddScoped<ICustomerProfileRepository, CustomerProfileRepository>();
+builder.Services.AddScoped<ICustomerHistoryRepository, CustomerHistoryRepository>();
+builder.Services.AddScoped<ICustomerServiceInvoiceRepository, CustomerServiceInvoiceRepository>();
+builder.Services.AddScoped<IPaymentServiceRepository, PaymentServiceRepository>();
+builder.Services.AddScoped<ICustomerPartRequestRepository, CustomerPartRequestRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 builder.Services.AddScoped<IStaffManagementRepository, StaffManagementRepository>();
 builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
@@ -90,7 +121,14 @@ builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
-builder.Services.AddScoped<ICustomerPortalService, CustomerPortalService>();
+builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+builder.Services.AddScoped<ICustomerHistoryService, CustomerHistoryService>();
+builder.Services.AddScoped<ICustomerServiceInvoiceService, CustomerServiceInvoiceService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ICustomerPartRequestService, CustomerPartRequestService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
@@ -99,6 +137,10 @@ builder.Services.AddScoped<IStaffReportService, StaffReportService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<InvoiceTemplateService>();
+builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
+builder.Services.AddScoped<IServiceInvoicePaymentService, ServiceInvoicePaymentService>();
+builder.Services.AddScoped<ISalesInvoicePaymentService, SalesInvoicePaymentService>();
+builder.Services.AddHttpClient<IKhaltiClient, KhaltiClient>();
 #endregion
 
 builder.Services.AddHostedService<AlertBackgroundService>();
@@ -159,7 +201,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseStaticFiles();
+app.UseCors(FrontendCorsPolicy);
 
 app.UseCors("AllowReactApp");
 
@@ -172,13 +220,13 @@ app.MapControllers();
 #region SEED
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    var seed = scope.ServiceProvider
-        .GetRequiredService<Microsoft.Extensions.Options.IOptions<AdminSeedSettings>>().Value;
-
+    var seedSettings = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdminSeedSettings>>().Value;
+    await dbContext.Database.MigrateAsync();
     await RoleSeeder.SeedAsync(roleManager);
-    await AdminSeeder.SeedAsync(roleManager, userManager, seed);
+    await AdminSeeder.SeedAsync(roleManager, userManager, seedSettings);
 }
 #endregion
 

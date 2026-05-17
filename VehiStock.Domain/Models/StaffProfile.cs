@@ -21,8 +21,6 @@ public class StaffProfile
 
     public ICollection<SalesInvoice> SalesInvoices { get; set; } = new List<SalesInvoice>();
 
-    public ICollection<Payment> ReceivedPayments { get; set; } = new List<Payment>();
-
     public ICollection<Appointment> AssignedAppointments { get; set; } = new List<Appointment>();
 
     public ICollection<ServiceRecord> ServiceRecords { get; set; } = new List<ServiceRecord>();

@@ -15,6 +15,45 @@ public class SalesInvoiceService : ISalesInvoiceService
         _salesInvoiceRepository = salesInvoiceRepository;
     }
 
+    public async Task<SalesInvoiceLookupResponse> GetLookupAsync(CancellationToken cancellationToken = default)
+    {
+        var customers = await _salesInvoiceRepository.GetCustomersWithVehiclesAsync(cancellationToken);
+        var parts = await _salesInvoiceRepository.GetAvailablePartsAsync(cancellationToken);
+
+        return new SalesInvoiceLookupResponse
+        {
+            Customers = customers
+                .Select(customer => new SalesInvoiceCustomerLookupResponse
+                {
+                    CustomerId = customer.CustomerId,
+                    FullName = customer.User.FullName,
+                    Email = customer.User.Email ?? string.Empty,
+                    PhoneNumber = customer.User.PhoneNumber,
+                    Vehicles = customer.Vehicles
+                        .OrderBy(vehicle => vehicle.VehicleNumber)
+                        .Select(vehicle => new SalesInvoiceVehicleLookupResponse
+                        {
+                            VehicleId = vehicle.VehicleId,
+                            VehicleNumber = vehicle.VehicleNumber,
+                            Make = vehicle.Make,
+                            Model = vehicle.Model
+                        })
+                        .ToList()
+                })
+                .ToList(),
+            Parts = parts
+                .Select(part => new SalesInvoicePartLookupResponse
+                {
+                    PartId = part.PartId,
+                    PartName = part.PartName,
+                    Brand = part.Brand,
+                    UnitPrice = part.UnitPrice,
+                    StockQty = part.StockQty
+                })
+                .ToList()
+        };
+    }
+
     public async Task<SalesInvoiceResponse> CreateAsync(string userId, CreateSalesInvoiceRequest request, CancellationToken cancellationToken = default)
     {
         if (request.Items.Count == 0)
@@ -28,10 +67,7 @@ public class SalesInvoiceService : ISalesInvoiceService
             throw new InvalidOperationException("Staff profile was not found for this account.");
         }
 
-        if (await _salesInvoiceRepository.InvoiceExistsAsync(request.InvoiceNo.Trim(), cancellationToken))
-        {
-            throw new InvalidOperationException("Invoice number already exists.");
-        }
+        var invoiceNo = await GenerateInvoiceNoAsync(cancellationToken);
 
         var customer = await _salesInvoiceRepository.GetCustomerAsync(request.CustomerId, cancellationToken);
         if (customer is null)
@@ -45,9 +81,9 @@ public class SalesInvoiceService : ISalesInvoiceService
             throw new InvalidOperationException("Vehicle was not found for this customer.");
         }
 
-        var partIds = request.Items.Select(x => x.PartId).Distinct().ToArray();
+        var partIds = request.Items.Select(x => x.PartId).Distinct().ToList();
         var parts = (await _salesInvoiceRepository.GetPartsByIdsAsync(partIds, cancellationToken)).ToDictionary(x => x.PartId);
-        if (parts.Count != partIds.Length)
+        if (parts.Count != partIds.Count)
         {
             throw new InvalidOperationException("One or more parts were not found.");
         }
@@ -111,7 +147,7 @@ public class SalesInvoiceService : ISalesInvoiceService
 
         var salesInvoice = new SalesInvoice
         {
-            InvoiceNo = request.InvoiceNo.Trim(),
+            InvoiceNo = invoiceNo,
             CustomerId = customer.CustomerId,
             VehicleId = vehicle.VehicleId,
             StaffMemberId = staffProfile.StaffMemberId,
@@ -136,7 +172,6 @@ public class SalesInvoiceService : ISalesInvoiceService
             {
                 SalesInvoice = salesInvoice,
                 CustomerId = customer.CustomerId,
-                ReceivedByStaffId = staffProfile.StaffMemberId,
                 PaymentType = request.PaymentType,
                 Amount = request.AmountPaid
             };
@@ -179,5 +214,26 @@ public class SalesInvoiceService : ISalesInvoiceService
         }
 
         return PaymentStatus.Partial;
+    }
+
+    private async Task<string> GenerateInvoiceNoAsync(CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            var candidate = $"SI-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+            if (attempt > 0)
+            {
+                candidate = $"{candidate}-{attempt}";
+            }
+
+            if (!await _salesInvoiceRepository.InvoiceExistsAsync(candidate, cancellationToken))
+            {
+                return candidate;
+            }
+
+            await Task.Delay(5, cancellationToken);
+        }
+
+        throw new InvalidOperationException("Unable to generate a unique invoice number.");
     }
 }

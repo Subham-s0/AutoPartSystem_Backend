@@ -28,6 +28,7 @@ packages/
 # Logs
 *.log
 logs/
+VehiStock/wwwroot/uploads/
 
 # Diagram files
 *.drawio
@@ -42,3 +43,4 @@ secrets.json
 # OS files
 Thumbs.db
 Desktop.ini
+*.docx
