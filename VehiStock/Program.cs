@@ -1,27 +1,29 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using System.Security.Claims;
+using System.Text;
+
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Domain.Seeders;
-using VehiStock.Domain.Constants;
 using VehiStock.Entities;
+using VehiStock.Infrastructure.Configurations;
 using VehiStock.Infrastructure.Persistance;
 using VehiStock.Infrastructure.Repositories;
-using VehiStock.Infrastructure.Settings;
 using VehiStock.Infrastructure.Services;
+using VehiStock.Infrastructure.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
 
-// Add services to the container.
-
+#region DB
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+#endregion
 
 var allowedCorsOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
@@ -43,59 +45,67 @@ builder.Services.AddCors(options =>
     });
 });
 
+#region IDENTITY
 builder.Services
     .AddIdentityCore<ApplicationUser>(options =>
     {
         options.User.RequireUniqueEmail = true;
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = false;
-        options.Password.RequireNonAlphanumeric = false;
         options.Password.RequiredLength = 8;
     })
     .AddRoles<ApplicationRole>()
-    .AddSignInManager<SignInManager<ApplicationUser>>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+#endregion
 
-var jwtSection = builder.Configuration.GetSection("Jwt");
-builder.Services.Configure<JwtSettings>(jwtSection);
-builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authentication:Google"));
+#region CONFIG
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.Configure<AdminSeedSettings>(builder.Configuration.GetSection("SeedAdmin"));
 builder.Services.Configure<AlertProcessingSettings>(builder.Configuration.GetSection("Alerts"));
 builder.Services.Configure<ImageUploadSettings>(builder.Configuration.GetSection("ImageUpload"));
 builder.Services.Configure<KhaltiSettings>(builder.Configuration.GetSection("Khalti"));
+builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authentication:Google"));
+#endregion
 
-var jwtSettings = jwtSection.Get<JwtSettings>() ?? throw new InvalidOperationException("Jwt settings are not configured.");
-if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
-{
-    throw new InvalidOperationException("Jwt:SecretKey is not configured.");
-}
+#region JWT
+var jwt = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()
+    ?? throw new Exception("JWT missing");
 
-var authenticationBuilder = builder.Services.AddAuthentication(options =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(opt =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-});
-
-authenticationBuilder.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+    opt.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings.Issuer,
-        ValidAudience = jwtSettings.Audience,
+
+        ValidIssuer = jwt.Issuer,
+        ValidAudience = jwt.Audience,
+
         NameClaimType = ClaimTypes.Name,
         RoleClaimType = ClaimTypes.Role,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(jwt.SecretKey))
     };
 });
+#endregion
 
 builder.Services.AddAuthorization();
+
+#region CORS
+builder.Services.AddCors(opt =>
+{
+    opt.AddPolicy("AllowReactApp", p =>
+        p.WithOrigins("http://localhost:5173")
+         .AllowAnyHeader()
+         .AllowAnyMethod());
+});
+#endregion
+
+#region SERVICES & REPOSITORIES
 builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
 builder.Services.AddScoped<ICustomerProfileRepository, CustomerProfileRepository>();
 builder.Services.AddScoped<ICustomerHistoryRepository, CustomerHistoryRepository>();
@@ -109,6 +119,8 @@ builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 builder.Services.AddScoped<IStaffManagementRepository, StaffManagementRepository>();
 builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
 builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
+builder.Services.AddScoped<IVendorRepository, VendorRepository>();
+
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
 builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
@@ -123,47 +135,75 @@ builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
 builder.Services.AddScoped<IStaffReportService, StaffReportService>();
+builder.Services.AddScoped<IVendorService, VendorService>();
+builder.Services.AddScoped<IStaffDashboardService, StaffDashboardService>();
+builder.Services.AddScoped<IStaffAppointmentService, StaffAppointmentService>();
+
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<InvoiceTemplateService>();
 builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
 builder.Services.AddScoped<IServiceInvoicePaymentService, ServiceInvoicePaymentService>();
 builder.Services.AddScoped<ISalesInvoicePaymentService, SalesInvoicePaymentService>();
 builder.Services.AddHttpClient<IKhaltiClient, KhaltiClient>();
+#endregion
+
 builder.Services.AddHostedService<AlertBackgroundService>();
 
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+#region CONTROLLERS
+builder.Services.AddControllers()
+.AddJsonOptions(x =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
+    x.JsonSerializerOptions.ReferenceHandler =
+        System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
+builder.Services.AddEndpointsApiExplorer();
+#endregion
+
+#region SWAGGER (FIXED & SAFE)
+builder.Services.AddSwaggerGen(opt =>
+{
+    opt.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "VehiStock API",
         Version = "v1"
     });
 
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter a JWT bearer token."
+        Description = "Enter: Bearer {your token}"
+    });
+
+    opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
     });
 });
+#endregion
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+#region PIPELINE
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "VehiStock API v1");
-        options.RoutePrefix = "swagger";
-    });
+    app.UseSwaggerUI();
 }
 
 if (!app.Environment.IsDevelopment())
@@ -174,11 +214,15 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.UseCors(FrontendCorsPolicy);
 
+app.UseCors("AllowReactApp");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+#endregion
 
+#region SEED
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -189,5 +233,6 @@ using (var scope = app.Services.CreateScope())
     await RoleSeeder.SeedAsync(roleManager);
     await AdminSeeder.SeedAsync(roleManager, userManager, seedSettings);
 }
+#endregion
 
 app.Run();

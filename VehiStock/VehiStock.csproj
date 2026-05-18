@@ -9,22 +9,24 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+
+    <!-- KEEP ONLY SWAGGER -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj" />
+    <ProjectReference Include="..\VehiStock.Application\VehiStock.Application.csproj" />
+    <ProjectReference Include="..\VehiStock.Domain\VehiStock.Domain.csproj" />
+    <ProjectReference Include="..\VehiStock.Infrastructure\VehiStock.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

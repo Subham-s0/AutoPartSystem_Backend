@@ -9,7 +9,7 @@ namespace VehiStock.Controllers;
 
 // Used for auth management endpoints
 [ApiController]
-[Authorize(Roles = RoleNames.Admin)]
+[Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
 [Route("api/admin/staff")]
 public class AdminStaffController : ControllerBase
 {
@@ -31,6 +31,7 @@ public class AdminStaffController : ControllerBase
     }
 
     [HttpPut("{userId}/role")]
+    [Authorize(Roles = RoleNames.Admin)]
     public async Task<ActionResult<ApiResponse<StaffSummaryResponse>>> UpdateRole(
         string userId,
         UpdateStaffRoleRequest request,

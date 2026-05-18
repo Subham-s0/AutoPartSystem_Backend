@@ -127,4 +127,34 @@ public class AuthController : ControllerBase
 
         return Ok(ApiResponse<RegisterUserResponse>.Ok(result, "Staff registered successfully."));
     }
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public async Task<ActionResult<ApiResponse<object?>>> ForgotPassword(
+        ForgotPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _userAuthService.ForgotPasswordAsync(request, cancellationToken);
+        if (!result.Succeeded)
+        {
+            return BadRequest(ApiResponse<object?>.Fail("Forgot password request failed.", result.Errors));
+        }
+
+        return Ok(ApiResponse<object?>.Ok(null, "Password reset email sent successfully."));
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    public async Task<ActionResult<ApiResponse<object?>>> ResetPassword(
+        ResetPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _userAuthService.ResetPasswordAsync(request, cancellationToken);
+        if (!result.Succeeded)
+        {
+            return BadRequest(ApiResponse<object?>.Fail("Password reset failed.", result.Errors));
+        }
+
+        return Ok(ApiResponse<object?>.Ok(null, "Password reset successfully."));
+    }
 }
