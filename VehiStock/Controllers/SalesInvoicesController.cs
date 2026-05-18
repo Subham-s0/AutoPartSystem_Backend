@@ -46,18 +46,21 @@ public class SalesInvoicesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<SalesInvoiceResponse>>>> GetList(
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<SalesInvoiceResponse>>>> GetList(
+        [FromQuery] string? search,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var response = await _salesInvoiceService.GetAllAsync(cancellationToken);
-            return Ok(ApiResponse<IReadOnlyCollection<SalesInvoiceResponse>>.Ok(response, "Sales invoices fetched successfully."));
+            var response = await _salesInvoiceService.GetPaginatedAsync(search, pageNumber, pageSize, cancellationToken);
+            return Ok(ApiResponse<PaginatedResponse<SalesInvoiceResponse>>.Ok(response, "Sales invoices fetched successfully."));
         }
         catch (Exception ex)
         {
             Console.WriteLine("CRITICAL ERROR IN GET_LIST: " + ex.ToString());
-            return StatusCode(500, ApiResponse<IReadOnlyCollection<SalesInvoiceResponse>>.Fail("Error: " + ex.Message));
+            return StatusCode(500, ApiResponse<PaginatedResponse<SalesInvoiceResponse>>.Fail("Error: " + ex.Message));
         }
     }
 

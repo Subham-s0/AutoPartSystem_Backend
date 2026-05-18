@@ -20,11 +20,14 @@ public class VendorsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<VendorResponse>>>> GetAll(
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<VendorResponse>>>> GetAll(
+        [FromQuery] string? search,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
-        var result = await _vendorService.GetAllVendorsAsync(cancellationToken);
-        return Ok(ApiResponse<IReadOnlyCollection<VendorResponse>>.Ok(result, "Vendors retrieved successfully."));
+        var result = await _vendorService.GetVendorsPaginatedAsync(search, pageNumber, pageSize, cancellationToken);
+        return Ok(ApiResponse<PaginatedResponse<VendorResponse>>.Ok(result, "Vendors retrieved successfully."));
     }
 
     [HttpGet("{id:int}")]
