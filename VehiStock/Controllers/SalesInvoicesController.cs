@@ -45,6 +45,73 @@ public class SalesInvoicesController : ControllerBase
         }
     }
 
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<SalesInvoiceResponse>>>> GetList(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _salesInvoiceService.GetAllAsync(cancellationToken);
+            return Ok(ApiResponse<IReadOnlyCollection<SalesInvoiceResponse>>.Ok(response, "Sales invoices fetched successfully."));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("CRITICAL ERROR IN GET_LIST: " + ex.ToString());
+            return StatusCode(500, ApiResponse<IReadOnlyCollection<SalesInvoiceResponse>>.Fail("Error: " + ex.Message));
+        }
+    }
+
+    [AllowAnonymous]
+    [HttpGet("test-error")]
+    public async Task<IActionResult> TestError(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _salesInvoiceService.GetAllAsync(cancellationToken);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return Ok(ex.ToString());
+        }
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult<ApiResponse<string>>> Delete(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _salesInvoiceService.DeleteAsync(id, cancellationToken);
+            return Ok(ApiResponse<string>.Ok(string.Empty, "Sales invoice deleted successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ApiResponse<string>.Fail(ex.Message));
+        }
+    }
+
+    [HttpPost("{id:int}/send-email")]
+    public async Task<ActionResult<ApiResponse<string>>> SendEmail(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _salesInvoiceService.SendEmailAsync(id, cancellationToken);
+            return Ok(ApiResponse<string>.Ok(string.Empty, "Sales invoice email sent successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ApiResponse<string>.Fail(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.Fail("An error occurred while sending the email. " + ex.Message));
+        }
+    }
+
     private string GetCurrentUserId()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

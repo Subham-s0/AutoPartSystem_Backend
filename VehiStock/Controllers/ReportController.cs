@@ -1,10 +1,15 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VehiStock.Application.Dtos.Common;
+using VehiStock.Application.Dtos.Reports;
 using VehiStock.Application.Interfaces.IServices;
+using VehiStock.Domain.Constants;
 
 namespace VehiStock.Controllers
 {
     [ApiController]
-    [Route("api/reports")]
+    [Authorize(Roles = RoleNames.Admin)]
+    [Route("api/admin/reports")]
     public class ReportsController : ControllerBase
     {
         private readonly IReportService _reportService;
@@ -15,24 +20,25 @@ namespace VehiStock.Controllers
         }
 
         [HttpGet("daily")]
-        public async Task<IActionResult> GetDailyReport([FromQuery] DateTime date)
+        public async Task<ActionResult<ApiResponse<Reports>>> GetDailyReport([FromQuery] DateTime? date)
         {
-            var result = await _reportService.GetDailyReport(date);
-            return Ok(result);
+            var targetDate = date ?? DateTime.UtcNow;
+            var result = await _reportService.GetDailyReport(targetDate);
+            return Ok(ApiResponse<Reports>.Ok(result));
         }
 
         [HttpGet("monthly")]
-        public async Task<IActionResult> GetMonthlyReport([FromQuery] int year, [FromQuery] int month)
+        public async Task<ActionResult<ApiResponse<Reports>>> GetMonthlyReport([FromQuery] int year, [FromQuery] int month)
         {
             var result = await _reportService.GetMonthlyReport(year, month);
-            return Ok(result);
+            return Ok(ApiResponse<Reports>.Ok(result));
         }
 
         [HttpGet("yearly")]
-        public async Task<IActionResult> GetYearlyReport([FromQuery] int year)
+        public async Task<ActionResult<ApiResponse<Reports>>> GetYearlyReport([FromQuery] int year)
         {
             var result = await _reportService.GetYearlyReport(year);
-            return Ok(result);
+            return Ok(ApiResponse<Reports>.Ok(result));
         }
     }
 }

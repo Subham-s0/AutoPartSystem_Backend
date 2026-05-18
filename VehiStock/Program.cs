@@ -64,6 +64,7 @@ builder.Services.Configure<AdminSeedSettings>(builder.Configuration.GetSection("
 builder.Services.Configure<AlertProcessingSettings>(builder.Configuration.GetSection("Alerts"));
 builder.Services.Configure<ImageUploadSettings>(builder.Configuration.GetSection("ImageUpload"));
 builder.Services.Configure<KhaltiSettings>(builder.Configuration.GetSection("Khalti"));
+builder.Services.Configure<GoogleAuthSettings>(builder.Configuration.GetSection("Authentication:Google"));
 #endregion
 
 #region JWT
@@ -118,6 +119,7 @@ builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 builder.Services.AddScoped<IStaffManagementRepository, StaffManagementRepository>();
 builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
 builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
+builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
@@ -133,6 +135,9 @@ builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
 builder.Services.AddScoped<IStaffReportService, StaffReportService>();
+builder.Services.AddScoped<IVendorService, VendorService>();
+builder.Services.AddScoped<IStaffDashboardService, StaffDashboardService>();
+builder.Services.AddScoped<IStaffAppointmentService, StaffAppointmentService>();
 
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
