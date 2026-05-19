@@ -15,10 +15,9 @@ public class StaffReportRepository : IStaffReportRepository
         _dbContext = dbContext;
     }
 
-    public async Task<(IReadOnlyCollection<RegularCustomerReportResponse> Items, int TotalRecords)> GetRegularCustomersAsync(int pageNumber, int pageSize, int minimumInvoices, CancellationToken cancellationToken = default)
+    public async Task<(IReadOnlyCollection<RegularCustomerReportResponse> Items, int TotalRecords)> GetRegularCustomersAsync(int pageNumber, int pageSize, int minimumInvoices, DateOnly? fromDate, DateOnly? toDate, CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.SalesInvoices
-            .AsNoTracking()
+        var query = ApplyDateRange(_dbContext.SalesInvoices.AsNoTracking(), fromDate, toDate)
             .GroupBy(x => new
             {
                 x.CustomerId,
@@ -43,10 +42,9 @@ public class StaffReportRepository : IStaffReportRepository
         return (items, totalRecords);
     }
 
-    public async Task<(IReadOnlyCollection<HighSpenderReportResponse> Items, int TotalRecords)> GetHighSpendersAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<(IReadOnlyCollection<HighSpenderReportResponse> Items, int TotalRecords)> GetHighSpendersAsync(int pageNumber, int pageSize, DateOnly? fromDate, DateOnly? toDate, CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.SalesInvoices
-            .AsNoTracking()
+        var query = ApplyDateRange(_dbContext.SalesInvoices.AsNoTracking(), fromDate, toDate)
             .GroupBy(x => new
             {
                 x.CustomerId,
@@ -70,10 +68,9 @@ public class StaffReportRepository : IStaffReportRepository
         return (items, totalRecords);
     }
 
-    public async Task<(IReadOnlyCollection<PendingCreditReportResponse> Items, int TotalRecords)> GetPendingCreditsAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<(IReadOnlyCollection<PendingCreditReportResponse> Items, int TotalRecords)> GetPendingCreditsAsync(int pageNumber, int pageSize, DateOnly? fromDate, DateOnly? toDate, CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.SalesInvoices
-            .AsNoTracking()
+        var query = ApplyDateRange(_dbContext.SalesInvoices.AsNoTracking(), fromDate, toDate)
             .Where(x => x.BalanceDue > 0m)
             .Select(x => new PendingCreditReportResponse
             {
@@ -94,5 +91,44 @@ public class StaffReportRepository : IStaffReportRepository
         var totalRecords = await query.CountAsync(cancellationToken);
         var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
         return (items, totalRecords);
+    }
+
+    public async Task<CustomerReportSummaryResponse> GetSummaryAsync(DateOnly? fromDate, DateOnly? toDate, CancellationToken cancellationToken = default)
+    {
+        var query = ApplyDateRange(_dbContext.SalesInvoices.AsNoTracking(), fromDate, toDate);
+
+        var totalCustomersWithInvoices = await query
+            .Select(x => x.CustomerId)
+            .Distinct()
+            .CountAsync(cancellationToken);
+
+        var totalInvoices = await query.CountAsync(cancellationToken);
+        var totalRevenue = await query.SumAsync(x => (decimal?)x.TotalAmount, cancellationToken) ?? 0m;
+        var totalOutstandingBalance = await query.SumAsync(x => (decimal?)x.BalanceDue, cancellationToken) ?? 0m;
+        var averageCustomerSpend = totalCustomersWithInvoices == 0 ? 0m : totalRevenue / totalCustomersWithInvoices;
+
+        return new CustomerReportSummaryResponse
+        {
+            TotalCustomersWithInvoices = totalCustomersWithInvoices,
+            TotalInvoices = totalInvoices,
+            TotalRevenue = totalRevenue,
+            TotalOutstandingBalance = totalOutstandingBalance,
+            AverageCustomerSpend = Math.Round(averageCustomerSpend, 2, MidpointRounding.AwayFromZero)
+        };
+    }
+
+    private static IQueryable<VehiStock.Entities.SalesInvoice> ApplyDateRange(IQueryable<VehiStock.Entities.SalesInvoice> query, DateOnly? fromDate, DateOnly? toDate)
+    {
+        if (fromDate.HasValue)
+        {
+            query = query.Where(x => x.InvoiceDate >= fromDate.Value);
+        }
+
+        if (toDate.HasValue)
+        {
+            query = query.Where(x => x.InvoiceDate <= toDate.Value);
+        }
+
+        return query;
     }
 }

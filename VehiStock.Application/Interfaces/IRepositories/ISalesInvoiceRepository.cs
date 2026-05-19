@@ -1,3 +1,4 @@
+using VehiStock.Application.Dtos.Common;
 using VehiStock.Entities;
 
 namespace VehiStock.Application.Interfaces.IRepositories;
@@ -13,4 +14,8 @@ public interface ISalesInvoiceRepository
     Task<Vehicle?> GetVehicleForCustomerAsync(int customerId, int vehicleId, CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<Part>> GetPartsByIdsAsync(IReadOnlyCollection<int> partIds, CancellationToken cancellationToken = default);
     Task<SalesInvoice> CreateSalesInvoiceAsync(SalesInvoice salesInvoice, Payment? payment, CancellationToken cancellationToken = default);
+    Task<(IReadOnlyCollection<SalesInvoice> Items, int TotalRecords)> GetPaginatedAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<SalesInvoice?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task DeleteAsync(SalesInvoice salesInvoice, CancellationToken cancellationToken = default);
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

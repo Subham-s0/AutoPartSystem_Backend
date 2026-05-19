@@ -8,19 +8,19 @@ using VehiStock.Domain.Constants;
 namespace VehiStock.Controllers;
 
 [ApiController]
-[Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
-[Route("api/staff/customers")]
-public class StaffCustomersController : ControllerBase
+[Authorize(Roles = RoleNames.Admin)]
+[Route("api/admin/customers")]
+public class AdminCustomersController : ControllerBase
 {
     private readonly ICustomerProfileService _customerProfileService;
 
-    public StaffCustomersController(ICustomerProfileService customerProfileService)
+    public AdminCustomersController(ICustomerProfileService customerProfileService)
     {
         _customerProfileService = customerProfileService;
     }
 
-    [HttpGet("search")]
-    public async Task<ActionResult<ApiResponse<PaginatedResponse<CustomerDirectoryItemResponse>>>> SearchCustomers(
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<PaginatedResponse<CustomerDirectoryItemResponse>>>> GetCustomers(
         [FromQuery] string? search,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -43,22 +43,6 @@ public class StaffCustomersController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return NotFound(ApiResponse<CustomerDirectoryDetailResponse>.Fail(ex.Message));
-        }
-    }
-
-    [HttpGet("{customerId:int}/history")]
-    public async Task<ActionResult<ApiResponse<StaffCustomerHistoryResponse>>> GetCustomerHistory(
-        int customerId,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var history = await _customerProfileService.GetCustomerHistoryAsync(customerId, cancellationToken);
-            return Ok(ApiResponse<StaffCustomerHistoryResponse>.Ok(history, "Customer history fetched successfully."));
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ApiResponse<StaffCustomerHistoryResponse>.Fail(ex.Message));
         }
     }
 }
