@@ -1,0 +1,599 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock\\controllers\\anaylaticscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|solutionrelative:controllers\\anaylaticscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\services\\analyticsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\interfaces\\iservices\\ianalyticsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\dashboardsummarydto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock\\controllers\\purchaseinvoicecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|solutionrelative:controllers\\purchaseinvoicecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock\\controllers\\vendorscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|solutionrelative:controllers\\vendorscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock\\controllers\\partscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|solutionrelative:controllers\\partscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\services\\vendorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\services\\purchaseinvoiceservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\services\\partservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\interfaces\\iservices\\ipurchaseinvoiceservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\interfaces\\iservices\\ivendorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\interfaces\\iservices\\ipartservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\repositories\\purchaseinvoicerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\vehistock.infrastructure.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|solutionrelative:controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{13233806-121F-4AE2-85F9-C6D8A7E23427}|..\\VehiStock.Domain\\VehiStock.Domain.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.domain\\models\\purchaseinvoice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{4ECB7D25-37C7-F506-3635-6D10F8CFEC53}|VehiStock.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\vendordto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\updatepartdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\updatevendordto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\purchaseinvoiceitemdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\purchaseinvoicedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\partdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\createvendordto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\createpurchaseinvoiceitemdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\createpartdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\dtos\\createpurchaseinvoicedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\repositories\\vendorrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\repositories\\partrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\repositories\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\persistance\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\interfaces\\irepositories\\ivendorrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\interfaces\\irepositories\\ipurchaseinvoicerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EAC6219-2E90-4DAC-8318-26219C9B83C1}|..\\VehiStock.Application\\VehiStock.Application.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.application\\interfaces\\irepositories\\ipartrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{29E698F7-6AEB-4F08-BF36-4F0008749669}|..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj|c:\\users\\acer\\source\\repos\\autopartsystem_backend\\vehistock.infrastructure\\persistance\\migrations\\20260428051130_initialcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "AnaylaticsController.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Controllers\\AnaylaticsController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AnaylaticsController.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Controllers\\AnaylaticsController.cs*",
+              "RelativeToolTip": "Controllers\\AnaylaticsController.cs*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-18T08:49:42.701Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AnalyticsService.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Services\\AnalyticsService.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\Services\\AnalyticsService.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Services\\AnalyticsService.cs*",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\Services\\AnalyticsService.cs*",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAcwFYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-18T08:47:19.053Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "IAnalyticsService.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IServices\\IAnalyticsService.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\Interfaces\\IServices\\IAnalyticsService.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IServices\\IAnalyticsService.cs*",
+              "RelativeToolTip": "..\\VehiStock.Application\\Interfaces\\IServices\\IAnalyticsService.cs*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-18T08:46:51.59Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "DashboardSummaryDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\DashboardSummaryDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\DashboardSummaryDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\DashboardSummaryDto.cs*",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\DashboardSummaryDto.cs*",
+              "ViewState": "AgIAABIAAAAAAAAAAAA2wCsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-18T08:46:18.537Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "VendorService.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Services\\VendorService.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\Services\\VendorService.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Services\\VendorService.cs",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\Services\\VendorService.cs",
+              "ViewState": "AgIAAE4AAAAAAAAAAAAcwGIAAAA0AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-17T18:01:02.846Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Program.cs*",
+              "RelativeToolTip": "Program.cs*",
+              "ViewState": "AgIAAGYAAAAAAAAAAAAcwH8AAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T04:12:11.1Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "PurchaseInvoiceService.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Services\\PurchaseInvoiceService.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\Services\\PurchaseInvoiceService.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Services\\PurchaseInvoiceService.cs",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\Services\\PurchaseInvoiceService.cs",
+              "ViewState": "AgIAAGMAAAAAAAAAAAAcwHwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-17T18:00:50.756Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "PartService.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Services\\PartService.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\Services\\PartService.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Services\\PartService.cs",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\Services\\PartService.cs",
+              "ViewState": "AgIAAGkAAAAAAAAAAAAcwIIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-17T18:00:29.37Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "PartsController.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Controllers\\PartsController.cs",
+              "RelativeDocumentMoniker": "Controllers\\PartsController.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Controllers\\PartsController.cs",
+              "RelativeToolTip": "Controllers\\PartsController.cs",
+              "ViewState": "AgIAAHAAAAAAAAAAAAAUwIgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:39:14.851Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "PurchaseInvoiceController.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Controllers\\PurchaseInvoiceController.cs",
+              "RelativeDocumentMoniker": "Controllers\\PurchaseInvoiceController.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Controllers\\PurchaseInvoiceController.cs*",
+              "RelativeToolTip": "Controllers\\PurchaseInvoiceController.cs*",
+              "ViewState": "AgIAAJIAAAAAAAAAAAAcwKsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:53:47.556Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "VendorsController.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Controllers\\VendorsController.cs",
+              "RelativeDocumentMoniker": "Controllers\\VendorsController.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Controllers\\VendorsController.cs",
+              "RelativeToolTip": "Controllers\\VendorsController.cs",
+              "ViewState": "AgIAAFsAAAAAAAAAAAAYwHMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:54:01.064Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "IPartService.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IServices\\IPartService.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\Interfaces\\IServices\\IPartService.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IServices\\IPartService.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\Interfaces\\IServices\\IPartService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-17T18:02:00.491Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "IVendorService.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IServices\\IVendorService.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\Interfaces\\IServices\\IVendorService.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IServices\\IVendorService.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\Interfaces\\IServices\\IVendorService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-17T18:02:19.986Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "IPurchaseInvoiceService.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IServices\\IPurchaseInvoiceService.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\Interfaces\\IServices\\IPurchaseInvoiceService.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IServices\\IPurchaseInvoiceService.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\Interfaces\\IServices\\IPurchaseInvoiceService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-17T18:02:42.363Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "VehiStock.Infrastructure.csproj",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\VehiStock.Infrastructure.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-05-17T17:50:29.002Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "PurchaseInvoiceItemDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\PurchaseInvoiceItemDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\PurchaseInvoiceItemDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\PurchaseInvoiceItemDto.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\PurchaseInvoiceItemDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:46:09.904Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "UpdateVendorDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\UpdateVendorDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\UpdateVendorDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\UpdateVendorDto.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\UpdateVendorDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:48:05.636Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "PurchaseInvoice.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Domain\\Models\\PurchaseInvoice.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Domain\\Models\\PurchaseInvoice.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Domain\\Models\\PurchaseInvoice.cs",
+              "RelativeToolTip": "..\\VehiStock.Domain\\Models\\PurchaseInvoice.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:56:14.803Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "PurchaseInvoiceRepository.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Repositories\\PurchaseInvoiceRepository.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\Repositories\\PurchaseInvoiceRepository.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Repositories\\PurchaseInvoiceRepository.cs",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\Repositories\\PurchaseInvoiceRepository.cs",
+              "ViewState": "AgIAACwAAAAAAAAAAAAowDkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:50:00.004Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "WeatherForecastController.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Controllers\\WeatherForecastController.cs",
+              "RelativeDocumentMoniker": "Controllers\\WeatherForecastController.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\Controllers\\WeatherForecastController.cs",
+              "RelativeToolTip": "Controllers\\WeatherForecastController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-15T03:35:33.495Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "PurchaseInvoiceDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\PurchaseInvoiceDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\PurchaseInvoiceDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\PurchaseInvoiceDto.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\PurchaseInvoiceDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAYwBUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:47:15.136Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-28T04:37:21.565Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 36,
+              "Title": "20260428051130_InitialCreate.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Persistance\\Migrations\\20260428051130_InitialCreate.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\Persistance\\Migrations\\20260428051130_InitialCreate.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Persistance\\Migrations\\20260428051130_InitialCreate.cs",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\Persistance\\Migrations\\20260428051130_InitialCreate.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T05:11:31.427Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "UpdatePartDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\UpdatePartDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\UpdatePartDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\UpdatePartDto.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\UpdatePartDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:47:39.823Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "VendorDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\VendorDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\VendorDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\VendorDto.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\VendorDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:48:16.371Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "PartDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\PartDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\PartDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\PartDto.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\PartDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:45:35.837Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "CreateVendorDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\CreateVendorDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\CreateVendorDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\CreateVendorDto.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\CreateVendorDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:45:22.153Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "CreatePurchaseInvoiceItemDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\CreatePurchaseInvoiceItemDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\CreatePurchaseInvoiceItemDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\CreatePurchaseInvoiceItemDto.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\CreatePurchaseInvoiceItemDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:45:05.197Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "CreatePartDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\CreatePartDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\CreatePartDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\CreatePartDto.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\CreatePartDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:43:56.291Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "CreatePurchaseInvoiceDto.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\CreatePurchaseInvoiceDto.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\DTOs\\CreatePurchaseInvoiceDto.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\DTOs\\CreatePurchaseInvoiceDto.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\DTOs\\CreatePurchaseInvoiceDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:44:36.289Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "VendorRepository.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Repositories\\VendorRepository.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\Repositories\\VendorRepository.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Repositories\\VendorRepository.cs",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\Repositories\\VendorRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:50:08.046Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "PartRepository.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Repositories\\PartRepository.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\Repositories\\PartRepository.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Repositories\\PartRepository.cs",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\Repositories\\PartRepository.cs",
+              "ViewState": "AgIAACkAAAAAAAAAAAAkwDUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:49:47.753Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "Class1.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Repositories\\Class1.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\Repositories\\Class1.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Repositories\\Class1.cs",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\Repositories\\Class1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:58:42.637Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "ApplicationDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Persistance\\ApplicationDbContext.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Infrastructure\\Persistance\\ApplicationDbContext.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Infrastructure\\Persistance\\ApplicationDbContext.cs",
+              "RelativeToolTip": "..\\VehiStock.Infrastructure\\Persistance\\ApplicationDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:58:36.971Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "IPartRepository.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IRepositories\\IPartRepository.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\Interfaces\\IRepositories\\IPartRepository.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IRepositories\\IPartRepository.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\Interfaces\\IRepositories\\IPartRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:48:36.319Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 34,
+              "Title": "IPurchaseInvoiceRepository.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IRepositories\\IPurchaseInvoiceRepository.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\Interfaces\\IRepositories\\IPurchaseInvoiceRepository.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IRepositories\\IPurchaseInvoiceRepository.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\Interfaces\\IRepositories\\IPurchaseInvoiceRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:49:08.115Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "IVendorRepository.cs",
+              "DocumentMoniker": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IRepositories\\IVendorRepository.cs",
+              "RelativeDocumentMoniker": "..\\VehiStock.Application\\Interfaces\\IRepositories\\IVendorRepository.cs",
+              "ToolTip": "C:\\Users\\ACER\\source\\repos\\AutoPartSystem_Backend\\VehiStock.Application\\Interfaces\\IRepositories\\IVendorRepository.cs",
+              "RelativeToolTip": "..\\VehiStock.Application\\Interfaces\\IRepositories\\IVendorRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-28T03:48:46.299Z"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e5c86464-96be-4d7c-9a8b-abcb3bbf5f92}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
