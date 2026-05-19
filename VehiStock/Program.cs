@@ -120,6 +120,7 @@ builder.Services.AddCors(opt =>
 #region SERVICES & REPOSITORIES
 builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
 builder.Services.AddScoped<ICustomerProfileRepository, CustomerProfileRepository>();
+builder.Services.AddScoped<ICustomerDashboardRepository, CustomerDashboardRepository>();
 builder.Services.AddScoped<ICustomerHistoryRepository, CustomerHistoryRepository>();
 builder.Services.AddScoped<ICustomerServiceInvoiceRepository, CustomerServiceInvoiceRepository>();
 builder.Services.AddScoped<IPaymentServiceRepository, PaymentServiceRepository>();
@@ -130,6 +131,7 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 builder.Services.AddScoped<IStaffManagementRepository, StaffManagementRepository>();
 builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
+builder.Services.AddScoped<IStaffCustomerDeskRepository, StaffCustomerDeskRepository>();
 builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IAdminPartRequestRepository, AdminPartRequestRepository>();
@@ -141,6 +143,7 @@ builder.Services.AddScoped<IPurchaseInvoiceRepository, PurchaseInvoiceRepository
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
 builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+builder.Services.AddScoped<ICustomerDashboardService, CustomerDashboardService>();
 builder.Services.AddScoped<ICustomerHistoryService, CustomerHistoryService>();
 builder.Services.AddScoped<ICustomerServiceInvoiceService, CustomerServiceInvoiceService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
@@ -151,6 +154,7 @@ builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
+builder.Services.AddScoped<IStaffCustomerDeskService, StaffCustomerDeskService>();
 builder.Services.AddScoped<IStaffReportService, StaffReportService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 
