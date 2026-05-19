@@ -1,0 +1,51 @@
+# Build output
+bin/
+obj/
+out/
+publish/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Test / coverage
+TestResults/
+coverage/
+coverage-*.xml
+*.coverage
+*.coveragexml
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+
+# Logs
+*.log
+logs/
+VehiStock/wwwroot/uploads/
+
+# Diagram files
+*.drawio
+
+# Local environment / secrets
+.env
+.env.*
+appsettings.Development.json
+VehiStock/appsettings.json
+VehiStock/appsettings.Development.json
+secrets.json
+
+# OS files
+Thumbs.db
+Desktop.ini
+*.docx
+
+# Node.js
+node_modules/
+
