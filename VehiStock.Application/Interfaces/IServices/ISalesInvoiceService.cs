@@ -11,6 +11,7 @@ public interface ISalesInvoiceService
     Task<IReadOnlyCollection<SalesInvoiceResponse>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<PaginatedResponse<SalesInvoiceResponse>> GetPaginatedAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<SalesInvoiceResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<string> SellPartAsync(string userId, SellPartRequest request, CancellationToken cancellationToken = default);
     Task DeleteAsync(int id, CancellationToken cancellationToken = default);
     Task SendEmailAsync(int id, CancellationToken cancellationToken = default);
 }

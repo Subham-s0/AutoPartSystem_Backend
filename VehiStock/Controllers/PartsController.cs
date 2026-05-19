@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Application.DTOs.Customer;
 using Microsoft.EntityFrameworkCore;
 using VehiStock.Application.DTOs;
 using VehiStock.Application.Interfaces.IRepositories;
+using VehiStock.Domain.Constants;
 using VehiStock.Entities;
 using VehiStock.Infrastructure.Persistance;
 
@@ -11,6 +13,7 @@ namespace VehiStock.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = RoleNames.Admin)]
     public class PartsController : ControllerBase
     {
         private readonly IPartRepository _partRepository;
@@ -139,6 +142,7 @@ namespace VehiStock.Controllers
                 PartCode = dto.PartCode,
                 PartName = dto.PartName,
                 Brand = dto.Brand,
+                Brand = dto.Brand ?? string.Empty,
                 PartPhotoUrl = photoUrl,
                 UnitCost = dto.UnitCost,
                 UnitPrice = dto.UnitPrice,
@@ -182,6 +186,7 @@ namespace VehiStock.Controllers
             existing.PartCode = dto.PartCode;
             existing.PartName = dto.PartName;
             existing.Brand = dto.Brand;
+            existing.Brand = dto.Brand ?? string.Empty;
             existing.UnitCost = dto.UnitCost;
             existing.UnitPrice = dto.UnitPrice;
             existing.StockQty = dto.StockQty;
@@ -241,4 +246,5 @@ namespace VehiStock.Controllers
                 file.CopyToAsync);
         }
     }
+}
 }
