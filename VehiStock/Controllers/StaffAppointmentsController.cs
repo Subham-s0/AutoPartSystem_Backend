@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VehiStock.Application.Dtos.Common;
@@ -35,6 +36,28 @@ public class StaffAppointmentsController : ControllerBase
             cancellationToken);
 
         return Ok(ApiResponse<PaginatedResponse<StaffAppointmentResponse>>.Ok(response, "Appointments fetched successfully."));
+    }
+
+    [HttpPatch("{appointmentId:int}/accept")]
+    public async Task<ActionResult<ApiResponse<StaffAppointmentResponse>>> AcceptAppointment(
+        int appointmentId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized(ApiResponse<StaffAppointmentResponse>.Fail("User not authenticated."));
+            }
+
+            var response = await _appointmentService.AcceptAppointmentAsync(appointmentId, userId, cancellationToken);
+            return Ok(ApiResponse<StaffAppointmentResponse>.Ok(response, "Appointment accepted and assigned successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<StaffAppointmentResponse>.Fail(ex.Message));
+        }
     }
 
     [HttpPatch("{appointmentId:int}/status")]

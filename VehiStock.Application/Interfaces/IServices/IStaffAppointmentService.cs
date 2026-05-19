@@ -14,6 +14,11 @@ public interface IStaffAppointmentService
         string? searchText,
         CancellationToken cancellationToken = default);
 
+    Task<StaffAppointmentResponse> AcceptAppointmentAsync(
+        int appointmentId,
+        string staffUserId,
+        CancellationToken cancellationToken = default);
+
     Task<StaffAppointmentResponse> UpdateStatusAsync(
         int appointmentId,
         string status,

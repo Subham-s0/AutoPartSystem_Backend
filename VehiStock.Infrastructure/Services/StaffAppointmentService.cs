@@ -83,17 +83,44 @@ public class StaffAppointmentService : IStaffAppointmentService
         };
     }
 
+    public async Task<StaffAppointmentResponse> AcceptAppointmentAsync(
+        int appointmentId,
+        string staffUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var appointment = await LoadAppointmentAsync(appointmentId, cancellationToken);
+        if (appointment == null)
+        {
+            throw new InvalidOperationException("Appointment not found.");
+        }
+
+        if (appointment.Status != AppointmentStatus.Pending)
+        {
+            throw new InvalidOperationException("Only pending appointments can be accepted.");
+        }
+
+        var staff = await _dbContext.StaffProfiles
+            .Include(x => x.User)
+            .SingleOrDefaultAsync(x => x.UserId == staffUserId, cancellationToken);
+
+        if (staff == null)
+        {
+            throw new InvalidOperationException("Staff profile was not found for this account.");
+        }
+
+        appointment.Status = AppointmentStatus.Confirmed;
+        appointment.AssignedStaffId = staff.StaffMemberId;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return MapToResponse(appointment);
+    }
+
     public async Task<StaffAppointmentResponse> UpdateStatusAsync(
         int appointmentId,
         string status,
         CancellationToken cancellationToken = default)
     {
-        var appointment = await _dbContext.Appointments
-            .Include(x => x.Customer).ThenInclude(c => c.User)
-            .Include(x => x.Vehicle)
-            .Include(x => x.AssignedStaff).ThenInclude(s => s!.User)
-            .SingleOrDefaultAsync(x => x.AppointmentId == appointmentId, cancellationToken);
-
+        var appointment = await LoadAppointmentAsync(appointmentId, cancellationToken);
         if (appointment == null)
         {
             throw new InvalidOperationException("Appointment not found.");
@@ -103,6 +130,8 @@ public class StaffAppointmentService : IStaffAppointmentService
         {
             throw new InvalidOperationException($"Invalid appointment status. Allowed values are: {string.Join(", ", Enum.GetNames(typeof(AppointmentStatus)))}");
         }
+
+        ValidateStatusTransition(appointment.Status, newStatus);
 
         appointment.Status = newStatus;
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -115,15 +144,15 @@ public class StaffAppointmentService : IStaffAppointmentService
         int staffMemberId,
         CancellationToken cancellationToken = default)
     {
-        var appointment = await _dbContext.Appointments
-            .Include(x => x.Customer).ThenInclude(c => c.User)
-            .Include(x => x.Vehicle)
-            .Include(x => x.AssignedStaff).ThenInclude(s => s!.User)
-            .SingleOrDefaultAsync(x => x.AppointmentId == appointmentId, cancellationToken);
-
+        var appointment = await LoadAppointmentAsync(appointmentId, cancellationToken);
         if (appointment == null)
         {
             throw new InvalidOperationException("Appointment not found.");
+        }
+
+        if (appointment.Status is AppointmentStatus.Pending or AppointmentStatus.Cancelled or AppointmentStatus.Completed)
+        {
+            throw new InvalidOperationException("Staff can only be reassigned on confirmed appointments.");
         }
 
         var staffExists = await _dbContext.StaffProfiles
@@ -137,13 +166,37 @@ public class StaffAppointmentService : IStaffAppointmentService
         appointment.AssignedStaffId = staffMemberId;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        var reloaded = await _dbContext.Appointments
+        return MapToResponse(appointment);
+    }
+
+    private Task<Appointment?> LoadAppointmentAsync(int appointmentId, CancellationToken cancellationToken)
+    {
+        return _dbContext.Appointments
             .Include(x => x.Customer).ThenInclude(c => c.User)
             .Include(x => x.Vehicle)
             .Include(x => x.AssignedStaff).ThenInclude(s => s!.User)
-            .SingleAsync(x => x.AppointmentId == appointmentId, cancellationToken);
+            .SingleOrDefaultAsync(x => x.AppointmentId == appointmentId, cancellationToken);
+    }
 
-        return MapToResponse(reloaded);
+    private static void ValidateStatusTransition(AppointmentStatus currentStatus, AppointmentStatus newStatus)
+    {
+        if (currentStatus == newStatus)
+        {
+            return;
+        }
+
+        var allowed = (currentStatus, newStatus) switch
+        {
+            (AppointmentStatus.Pending, AppointmentStatus.Cancelled) => true,
+            (AppointmentStatus.Confirmed, AppointmentStatus.Completed) => true,
+            _ => false
+        };
+
+        if (!allowed)
+        {
+            throw new InvalidOperationException(
+                $"Cannot change appointment status from {currentStatus} to {newStatus}. Accept pending requests first, or complete confirmed jobs.");
+        }
     }
 
     private static StaffAppointmentResponse MapToResponse(Appointment a)
