@@ -25,9 +25,11 @@ public class CustomerReportsController : ControllerBase
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] int minimumInvoices = 2,
+        [FromQuery] DateOnly? fromDate = null,
+        [FromQuery] DateOnly? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await _staffReportService.GetRegularCustomersAsync(pageNumber, pageSize, minimumInvoices, cancellationToken);
+        var result = await _staffReportService.GetRegularCustomersAsync(pageNumber, pageSize, minimumInvoices, fromDate, toDate, cancellationToken);
         return Ok(ApiResponse<PaginatedResponse<RegularCustomerReportResponse>>.Ok(result, "Regular customers fetched successfully."));
     }
 
@@ -35,9 +37,11 @@ public class CustomerReportsController : ControllerBase
     public async Task<ActionResult<ApiResponse<PaginatedResponse<HighSpenderReportResponse>>>> GetHighSpenders(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
+        [FromQuery] DateOnly? fromDate = null,
+        [FromQuery] DateOnly? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await _staffReportService.GetHighSpendersAsync(pageNumber, pageSize, cancellationToken);
+        var result = await _staffReportService.GetHighSpendersAsync(pageNumber, pageSize, fromDate, toDate, cancellationToken);
         return Ok(ApiResponse<PaginatedResponse<HighSpenderReportResponse>>.Ok(result, "High spenders fetched successfully."));
     }
 
@@ -45,9 +49,21 @@ public class CustomerReportsController : ControllerBase
     public async Task<ActionResult<ApiResponse<PaginatedResponse<PendingCreditReportResponse>>>> GetPendingCredits(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
+        [FromQuery] DateOnly? fromDate = null,
+        [FromQuery] DateOnly? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await _staffReportService.GetPendingCreditsAsync(pageNumber, pageSize, cancellationToken);
+        var result = await _staffReportService.GetPendingCreditsAsync(pageNumber, pageSize, fromDate, toDate, cancellationToken);
         return Ok(ApiResponse<PaginatedResponse<PendingCreditReportResponse>>.Ok(result, "Pending credits fetched successfully."));
+    }
+
+    [HttpGet("summary")]
+    public async Task<ActionResult<ApiResponse<CustomerReportSummaryResponse>>> GetSummary(
+        [FromQuery] DateOnly? fromDate = null,
+        [FromQuery] DateOnly? toDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _staffReportService.GetSummaryAsync(fromDate, toDate, cancellationToken);
+        return Ok(ApiResponse<CustomerReportSummaryResponse>.Ok(result, "Customer report summary fetched successfully."));
     }
 }

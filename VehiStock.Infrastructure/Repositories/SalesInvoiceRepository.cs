@@ -128,6 +128,24 @@ public class SalesInvoiceRepository : ISalesInvoiceRepository
         var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
 
         var items = await query
+    public async Task<(IReadOnlyCollection<SalesInvoice> Items, int TotalRecords)> GetPaginatedAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query = BuildInvoiceQuery();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var normalizedSearch = search.Trim().ToLower();
+            query = query.Where(x =>
+                x.InvoiceNo.ToLower().Contains(normalizedSearch) ||
+                x.Customer.User.FullName.ToLower().Contains(normalizedSearch) ||
+                x.Vehicle.VehicleNumber.ToLower().Contains(normalizedSearch) ||
+                x.StaffMember.User.FullName.ToLower().Contains(normalizedSearch));
+        }
+
+        var totalRecords = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(x => x.InvoiceDate)
+            .ThenByDescending(x => x.SalesInvoiceId)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
@@ -174,6 +192,30 @@ public class SalesInvoiceRepository : ISalesInvoiceRepository
             {
                 part.IncreaseStock(item.Quantity);
             }
+        return (items, totalRecords);
+    }
+
+    public Task<SalesInvoice?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return BuildInvoiceQuery().SingleOrDefaultAsync(x => x.SalesInvoiceId == id, cancellationToken);
+    }
+
+    public async Task DeleteAsync(SalesInvoice salesInvoice, CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        foreach (var item in salesInvoice.Items)
+        {
+            item.Part.IncreaseStock(item.Quantity);
+        }
+
+        var payments = await _dbContext.Payments
+            .Where(x => x.SalesInvoiceId == salesInvoice.SalesInvoiceId)
+            .ToListAsync(cancellationToken);
+
+        if (payments.Count > 0)
+        {
+            _dbContext.Payments.RemoveRange(payments);
         }
 
         _dbContext.SalesInvoices.Remove(salesInvoice);
@@ -184,5 +226,20 @@ public class SalesInvoiceRepository : ISalesInvoiceRepository
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await _dbContext.SaveChangesAsync(cancellationToken);
+    public Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private IQueryable<SalesInvoice> BuildInvoiceQuery()
+    {
+        return _dbContext.SalesInvoices
+            .Include(x => x.Customer)
+                .ThenInclude(x => x.User)
+            .Include(x => x.Vehicle)
+            .Include(x => x.StaffMember)
+                .ThenInclude(x => x.User)
+            .Include(x => x.Items)
+                .ThenInclude(x => x.Part);
     }
 }

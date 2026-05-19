@@ -64,18 +64,19 @@ public class SalesInvoicesController : ControllerBase
         }
     }
 
-    [AllowAnonymous]
-    [HttpGet("test-error")]
-    public async Task<IActionResult> TestError(CancellationToken cancellationToken = default)
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<ApiResponse<SalesInvoiceResponse>>> GetById(
+        int id,
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            var response = await _salesInvoiceService.GetAllAsync(cancellationToken);
-            return Ok(response);
+            var response = await _salesInvoiceService.GetByIdAsync(id, cancellationToken);
+            return Ok(ApiResponse<SalesInvoiceResponse>.Ok(response, "Sales invoice fetched successfully."));
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
-            return Ok(ex.ToString());
+            return NotFound(ApiResponse<SalesInvoiceResponse>.Fail(ex.Message));
         }
     }
 

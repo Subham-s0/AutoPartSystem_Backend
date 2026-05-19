@@ -16,6 +16,16 @@ public class SalesInvoiceService : ISalesInvoiceService
     {
         _salesInvoiceRepository = salesInvoiceRepository;
         _emailService = emailService;
+    private readonly InvoiceTemplateService _invoiceTemplateService;
+
+    public SalesInvoiceService(
+        ISalesInvoiceRepository salesInvoiceRepository,
+        IEmailService emailService,
+        InvoiceTemplateService invoiceTemplateService)
+    {
+        _salesInvoiceRepository = salesInvoiceRepository;
+        _emailService = emailService;
+        _invoiceTemplateService = invoiceTemplateService;
     }
 
     public async Task<SalesInvoiceLookupResponse> GetLookupAsync(CancellationToken cancellationToken = default)
@@ -182,7 +192,21 @@ public class SalesInvoiceService : ISalesInvoiceService
 
         var created = await _salesInvoiceRepository.CreateSalesInvoiceAsync(salesInvoice, payment, cancellationToken);
 
-        return new SalesInvoiceResponse
+        created.Customer = customer;
+        created.Vehicle = vehicle;
+        created.StaffMember = staffProfile;
+        created.Items = invoiceItems;
+
+        return MapResponse(created, responseItems);
+    }
+
+    public async Task<PaginatedResponse<SalesInvoiceResponse>> GetPaginatedAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var normalizedPageNumber = Math.Max(1, pageNumber);
+        var normalizedPageSize = Math.Clamp(pageSize, 1, 100);
+        var (items, totalRecords) = await _salesInvoiceRepository.GetPaginatedAsync(search, normalizedPageNumber, normalizedPageSize, cancellationToken);
+
+        return new PaginatedResponse<SalesInvoiceResponse>
         {
             SalesInvoiceId = created.SalesInvoiceId,
             InvoiceNo = created.InvoiceNo,
@@ -204,7 +228,58 @@ public class SalesInvoiceService : ISalesInvoiceService
             PaymentType = created.PaymentType,
             PaymentStatus = created.PaymentStatus,
             Items = responseItems
+            Items = items.Select(x => MapResponse(x)).ToList(),
+            PageNumber = normalizedPageNumber,
+            PageSize = normalizedPageSize,
+            TotalRecords = totalRecords,
+            TotalPages = totalRecords == 0 ? 0 : (int)Math.Ceiling(totalRecords / (double)normalizedPageSize)
         };
+    }
+
+    public async Task<SalesInvoiceResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var invoice = await _salesInvoiceRepository.GetByIdAsync(id, cancellationToken);
+        if (invoice is null)
+        {
+            throw new InvalidOperationException("Sales invoice was not found.");
+        }
+
+        return MapResponse(invoice);
+    }
+
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var invoice = await _salesInvoiceRepository.GetByIdAsync(id, cancellationToken);
+        if (invoice is null)
+        {
+            throw new InvalidOperationException("Sales invoice was not found.");
+        }
+
+        await _salesInvoiceRepository.DeleteAsync(invoice, cancellationToken);
+    }
+
+    public async Task SendEmailAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var invoice = await _salesInvoiceRepository.GetByIdAsync(id, cancellationToken);
+        if (invoice is null)
+        {
+            throw new InvalidOperationException("Sales invoice was not found.");
+        }
+
+        var customerEmail = invoice.Customer.User.Email;
+        if (string.IsNullOrWhiteSpace(customerEmail))
+        {
+            throw new InvalidOperationException("Customer email is not available for this invoice.");
+        }
+
+        var htmlBody = _invoiceTemplateService.Generate(
+            invoice.Customer.User.FullName,
+            invoice.InvoiceNo,
+            invoice.TotalAmount);
+
+        await _emailService.SendInvoiceEmail(customerEmail, "VehiStock Invoice", htmlBody);
+        invoice.EmailSentAt = DateTime.UtcNow;
+        await _salesInvoiceRepository.SaveChangesAsync(cancellationToken);
     }
 
     private static PaymentStatus ResolvePaymentStatus(decimal totalAmount, decimal amountPaid)
@@ -271,6 +346,33 @@ public class SalesInvoiceService : ISalesInvoiceService
             {
                 PartId = item.PartId,
                 PartName = item.Part?.PartName ?? "Unknown Part",
+    private static SalesInvoiceResponse MapResponse(SalesInvoice invoice, IReadOnlyCollection<SalesInvoiceItemResponse>? itemsOverride = null)
+    {
+        return new SalesInvoiceResponse
+        {
+            SalesInvoiceId = invoice.SalesInvoiceId,
+            InvoiceNo = invoice.InvoiceNo,
+            CustomerId = invoice.CustomerId,
+            CustomerName = invoice.Customer?.User?.FullName,
+            VehicleId = invoice.VehicleId,
+            VehicleNumber = invoice.Vehicle?.VehicleNumber,
+            StaffMemberId = invoice.StaffMemberId,
+            StaffName = invoice.StaffMember?.User?.FullName,
+            InvoiceDate = invoice.InvoiceDate,
+            Subtotal = invoice.Subtotal,
+            DiscountPercent = invoice.DiscountPercent,
+            DiscountAmount = invoice.DiscountAmount,
+            TaxAmount = invoice.TaxAmount,
+            TotalAmount = invoice.TotalAmount,
+            AmountPaid = invoice.AmountPaid,
+            BalanceDue = invoice.BalanceDue,
+            CreditDueDate = invoice.CreditDueDate,
+            PaymentType = invoice.PaymentType.ToString(),
+            PaymentStatus = invoice.PaymentStatus.ToString(),
+            Items = itemsOverride ?? invoice.Items.Select(item => new SalesInvoiceItemResponse
+            {
+                PartId = item.PartId,
+                PartName = item.Part?.PartName ?? string.Empty,
                 Brand = item.Part?.Brand ?? string.Empty,
                 Quantity = item.Quantity,
                 UnitPrice = item.UnitPrice,
@@ -409,5 +511,8 @@ public class SalesInvoiceService : ISalesInvoiceService
         // Update EmailSentAt in the database
         invoice.EmailSentAt = DateTime.UtcNow;
         await _salesInvoiceRepository.SaveChangesAsync(cancellationToken);
+    }
+            }).ToList()
+        };
     }
 }

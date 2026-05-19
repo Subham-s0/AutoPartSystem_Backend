@@ -9,7 +9,7 @@ using VehiStock.Domain.Constants;
 namespace VehiStock.Controllers;
 
 [ApiController]
-[Authorize(Roles = RoleNames.Staff)]
+[Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
 [Route("api/staff/vehicles")]
 public class StaffVehiclesController : ControllerBase
 {

@@ -18,5 +18,8 @@ public interface ISalesInvoiceRepository
     Task<PaginatedResponse<SalesInvoice>> GetSalesInvoicesPaginatedAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<SalesInvoice?> GetSalesInvoiceByIdAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteSalesInvoiceAsync(SalesInvoice salesInvoice, CancellationToken cancellationToken = default);
+    Task<(IReadOnlyCollection<SalesInvoice> Items, int TotalRecords)> GetPaginatedAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<SalesInvoice?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task DeleteAsync(SalesInvoice salesInvoice, CancellationToken cancellationToken = default);
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }
