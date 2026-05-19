@@ -131,7 +131,6 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 builder.Services.AddScoped<IStaffManagementRepository, StaffManagementRepository>();
 builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
-builder.Services.AddScoped<IStaffCustomerDeskRepository, StaffCustomerDeskRepository>();
 builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IAdminPartRequestRepository, AdminPartRequestRepository>();
@@ -154,7 +153,6 @@ builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
-builder.Services.AddScoped<IStaffCustomerDeskService, StaffCustomerDeskService>();
 builder.Services.AddScoped<IStaffReportService, StaffReportService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 

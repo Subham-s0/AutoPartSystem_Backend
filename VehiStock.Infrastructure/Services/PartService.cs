@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehiStock.Application.DTOs;
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Application.Interfaces.IServices;
@@ -129,3 +129,4 @@ namespace VehiStock.Application.Services
         }
     }
 }
+

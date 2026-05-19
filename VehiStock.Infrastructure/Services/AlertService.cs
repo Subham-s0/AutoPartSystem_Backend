@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VehiStock.Application.Dtos.Common;
 using VehiStock.Application.Dtos.Notifications;
@@ -17,16 +18,25 @@ public class AlertService : IAlertService
 
     private readonly IAlertRepository _alertRepository;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IEmailService _emailService;
+    private readonly InvoiceTemplateService _invoiceTemplateService;
     private readonly AlertProcessingSettings _alertSettings;
+    private readonly ILogger<AlertService> _logger;
 
     public AlertService(
         IAlertRepository alertRepository,
         UserManager<ApplicationUser> userManager,
-        IOptions<AlertProcessingSettings> alertOptions)
+        IEmailService emailService,
+        InvoiceTemplateService invoiceTemplateService,
+        IOptions<AlertProcessingSettings> alertOptions,
+        ILogger<AlertService> logger)
     {
         _alertRepository = alertRepository;
         _userManager = userManager;
+        _emailService = emailService;
+        _invoiceTemplateService = invoiceTemplateService;
         _alertSettings = alertOptions.Value;
+        _logger = logger;
     }
 
     public async Task ProcessAlertsAsync(CancellationToken cancellationToken = default)
@@ -120,7 +130,8 @@ public class AlertService : IAlertService
 
     private async Task ProcessOverdueCreditRemindersAsync(CancellationToken cancellationToken)
     {
-        var overdueBefore = DateOnly.FromDateTime(DateTime.UtcNow.Date).AddMonths(-1);
+        var overdueMonths = Math.Max(1, _alertSettings.CreditOverdueMonths);
+        var overdueBefore = DateOnly.FromDateTime(DateTime.UtcNow.Date).AddMonths(-overdueMonths);
         var overdueInvoices = await _alertRepository.GetOverdueCreditInvoicesAsync(overdueBefore, cancellationToken);
         if (overdueInvoices.Count == 0)
         {
@@ -164,6 +175,29 @@ public class AlertService : IAlertService
                 ReferenceType = SalesInvoiceReferenceType,
                 ReferenceId = invoice.SalesInvoiceId
             }, cancellationToken);
+
+            try
+            {
+                var htmlBody = _invoiceTemplateService.GenerateCreditReminder(
+                    customerUser.FullName,
+                    invoice.InvoiceNo,
+                    invoice.BalanceDue,
+                    invoice.CreditDueDate,
+                    invoice.Vehicle?.VehicleNumber);
+
+                await _emailService.SendEmailAsync(
+                    customerUser.Email!,
+                    $"VehiStock payment reminder — invoice {invoice.InvoiceNo}",
+                    htmlBody);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to send credit reminder email for invoice {InvoiceId} to {Email}.",
+                    invoice.SalesInvoiceId,
+                    customerUser.Email);
+            }
         }
 
         await _alertRepository.SaveChangesAsync(cancellationToken);

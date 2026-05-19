@@ -191,6 +191,7 @@ namespace VehiStock.Controllers
             existing.MinimumStock = dto.MinimumStock;
             existing.IsActive = dto.IsActive;
 
+
             await _partRepository.UpdateAsync(existing);
 
             return Ok(new { message = "Part updated successfully" });
@@ -245,3 +246,4 @@ namespace VehiStock.Controllers
         }
     }
 }
+
