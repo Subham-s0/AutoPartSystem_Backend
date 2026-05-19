@@ -92,7 +92,11 @@ public class ServiceRecordService : IServiceRecordService
         serviceRecord.PartsCharge = partsCharge;
         serviceRecord.TotalCharge = request.LaborCharge + partsCharge;
 
-        if (IsReadyForBilling(serviceRecord))
+        if (!string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<ServiceRecordStatus>(request.Status, true, out var parsedStatus))
+        {
+            serviceRecord.Status = parsedStatus;
+        }
+        else if (IsReadyForBilling(serviceRecord))
         {
             serviceRecord.Status = ServiceRecordStatus.ReadyForBilling;
         }
@@ -154,8 +158,11 @@ public class ServiceRecordService : IServiceRecordService
         record.PartsCharge = partsCharge;
         record.TotalCharge = request.LaborCharge + partsCharge;
 
-        // Auto-transition to ReadyForBilling if all required fields are filled
-        if (record.Status == ServiceRecordStatus.Open && IsReadyForBilling(record))
+        if (!string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<ServiceRecordStatus>(request.Status, true, out var parsedStatus))
+        {
+            record.Status = parsedStatus;
+        }
+        else if (record.Status == ServiceRecordStatus.Open && IsReadyForBilling(record))
         {
             record.Status = ServiceRecordStatus.ReadyForBilling;
         }

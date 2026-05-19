@@ -72,7 +72,7 @@ public class ServiceRecordRepository : IServiceRecordRepository
             .Include(x => x.PartsUsed)
                 .ThenInclude(sp => sp.Part)
             .Include(x => x.ServiceInvoice)
-            .OrderByDescending(x => x.ServiceRecordId)
+            .OrderBy(x => x.ServiceRecordId)
             .ToListAsync(cancellationToken);
     }
 

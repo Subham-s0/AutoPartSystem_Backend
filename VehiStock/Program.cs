@@ -247,7 +247,7 @@ using (var scope = app.Services.CreateScope())
     await AdminSeeder.SeedAsync(roleManager, userManager, seedSettings);
 
     // Seed/Ensure Staff accounts exist with requested password Staff@1234
-    var staffEmails = new[] { "staff@vehistock.com", "satff@vehistock.com" };
+    var staffEmails = new[] { "staff@vehistock.com" };
     foreach (var email in staffEmails)
     {
         var user = await userManager.FindByEmailAsync(email);
@@ -255,7 +255,7 @@ using (var scope = app.Services.CreateScope())
         {
             user = new ApplicationUser
             {
-                FullName = email == "satff@vehistock.com" ? "Seeded Satff Member" : "Default Staff",
+                FullName = "Default Staff",
                 UserName = email,
                 Email = email,
                 EmailConfirmed = true,

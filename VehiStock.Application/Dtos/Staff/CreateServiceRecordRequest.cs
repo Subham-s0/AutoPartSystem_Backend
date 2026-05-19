@@ -24,6 +24,8 @@ public class CreateServiceRecordRequest
 
     public string? Notes { get; set; }
 
+    public string? Status { get; set; }
+
     public List<CreateServiceRecordPartRequest> PartsUsed { get; set; } = [];
 }
 

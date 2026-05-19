@@ -259,7 +259,7 @@ public class SalesInvoiceService : ISalesInvoiceService
         var htmlBody = $@"
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);'>
                 <div style='background-color: #059669; color: white; padding: 25px 20px; text-align: center;'>
-                    <h1 style='margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.5px;'>VehiStock Auto Parts</h1>
+                    <h1 style='margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.5px;'>VehiAutoPart</h1>
                     <p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;'>Invoice #{invoice.InvoiceNo}</p>
                 </div>
                 
@@ -294,7 +294,7 @@ public class SalesInvoiceService : ISalesInvoiceService
             </div>
         ";
 
-        var subject = $"Your Invoice from VehiStock Auto Parts ({invoice.InvoiceNo})";
+        var subject = $"Your Invoice from VehiAutoPart ({invoice.InvoiceNo})";
         
         await _emailService.SendInvoiceEmail(customerEmail, subject, htmlBody);
         
