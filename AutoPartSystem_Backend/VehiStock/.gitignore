@@ -1,4 +1,0 @@
-.env
-appsettings.Development.json
-node_modules
-found_log_*.txt
