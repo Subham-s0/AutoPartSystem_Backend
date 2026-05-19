@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text;
@@ -16,6 +15,7 @@ using VehiStock.Infrastructure.Persistance;
 using VehiStock.Infrastructure.Repositories;
 using VehiStock.Infrastructure.Services;
 using VehiStock.Infrastructure.Settings;
+using VehiStock.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
@@ -30,6 +30,10 @@ var allowedCorsOrigins = builder.Configuration
     .Get<string[]>() ?? [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://localhost:5175",
+        "http://127.0.0.1:5175",
         "http://localhost:4173",
         "http://127.0.0.1:4173"
     ];
@@ -107,7 +111,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("AllowReactApp", p =>
-        p.WithOrigins("http://localhost:5173")
+        p.WithOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175")
          .AllowAnyHeader()
          .AllowAnyMethod());
 });
@@ -126,10 +130,13 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IAlertRepository, AlertRepository>();
 builder.Services.AddScoped<IStaffManagementRepository, StaffManagementRepository>();
 builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
-builder.Services.AddScoped<IStaffCustomerDeskRepository, StaffCustomerDeskRepository>();
 builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IAdminPartRequestRepository, AdminPartRequestRepository>();
+
+// Parts & Purchase Invoices
+builder.Services.AddScoped<IPartRepository, PartRepository>();
+builder.Services.AddScoped<IPurchaseInvoiceRepository, PurchaseInvoiceRepository>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
@@ -144,9 +151,13 @@ builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
-builder.Services.AddScoped<IStaffCustomerDeskService, StaffCustomerDeskService>();
 builder.Services.AddScoped<IStaffReportService, StaffReportService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
+
+// Parts, Purchase Invoices, Analytics, & Dashboard
+builder.Services.AddScoped<IPartService, PartService>();
+builder.Services.AddScoped<IPurchaseInvoiceService, PurchaseInvoiceService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IStaffDashboardService, StaffDashboardService>();
 builder.Services.AddScoped<IStaffAppointmentService, StaffAppointmentService>();
 builder.Services.AddScoped<IAdminPartRequestService, AdminPartRequestService>();
@@ -173,7 +184,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 #endregion
 
-#region SWAGGER (FIXED & SAFE)
+#region SWAGGER
 builder.Services.AddSwaggerGen(opt =>
 {
     opt.SwaggerDoc("v1", new OpenApiInfo
@@ -241,9 +252,83 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var seedSettings = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdminSeedSettings>>().Value;
-    await dbContext.Database.MigrateAsync();
+
+    try
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Migration pre-check warning: {ex.Message}");
+    }
+
     await RoleSeeder.SeedAsync(roleManager);
     await AdminSeeder.SeedAsync(roleManager, userManager, seedSettings);
+
+    // Seed/Ensure Staff accounts exist with requested password Staff@1234
+    var staffEmails = new[] { "staff@vehistock.com", "satff@vehistock.com" };
+    foreach (var email in staffEmails)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            user = new ApplicationUser
+            {
+                FullName = email == "satff@vehistock.com" ? "Seeded Satff Member" : "Default Staff",
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true,
+                IsActive = true
+            };
+            var createRes = await userManager.CreateAsync(user, "Staff@1234");
+            if (!createRes.Succeeded)
+            {
+                var errors = string.Join(", ", createRes.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Failed to seed staff user '{email}': {errors}");
+            }
+            
+            await userManager.AddToRoleAsync(user, VehiStock.Domain.Constants.RoleNames.Staff);
+        }
+        else
+        {
+            var isPassValid = await userManager.CheckPasswordAsync(user, "Staff@1234");
+            if (!isPassValid)
+            {
+                var removeRes = await userManager.RemovePasswordAsync(user);
+                if (removeRes.Succeeded)
+                {
+                    var addRes = await userManager.AddPasswordAsync(user, "Staff@1234");
+                    if (!addRes.Succeeded)
+                    {
+                        var errors = string.Join(", ", addRes.Errors.Select(e => e.Description));
+                        throw new InvalidOperationException($"Failed to set password for '{email}': {errors}");
+                    }
+                }
+            }
+
+            if (!await userManager.IsInRoleAsync(user, VehiStock.Domain.Constants.RoleNames.Staff))
+            {
+                await userManager.AddToRoleAsync(user, VehiStock.Domain.Constants.RoleNames.Staff);
+            }
+        }
+
+        // Programmatically ensure the StaffProfile record exists for foreign key linkages
+        if (user != null && !string.IsNullOrEmpty(user.Id))
+        {
+            var hasProfile = await dbContext.StaffProfiles.AnyAsync(p => p.UserId == user.Id);
+            if (!hasProfile)
+            {
+                var staffProfile = new VehiStock.Entities.StaffProfile
+                {
+                    UserId = user.Id,
+                    JobTitle = "Default Staff",
+                    HireDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                };
+                dbContext.StaffProfiles.Add(staffProfile);
+                await dbContext.SaveChangesAsync();
+            }
+        }
+    }
 }
 #endregion
 
