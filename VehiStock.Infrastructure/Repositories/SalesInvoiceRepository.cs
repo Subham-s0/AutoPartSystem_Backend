@@ -128,6 +128,20 @@ public class SalesInvoiceRepository : ISalesInvoiceRepository
         var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
 
         var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PaginatedResponse<SalesInvoice>
+        {
+            Items = items,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalRecords = totalRecords,
+            TotalPages = totalPages
+        };
+    }
+
     public async Task<(IReadOnlyCollection<SalesInvoice> Items, int TotalRecords)> GetPaginatedAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = BuildInvoiceQuery();
@@ -150,14 +164,7 @@ public class SalesInvoiceRepository : ISalesInvoiceRepository
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        return new PaginatedResponse<SalesInvoice>
-        {
-            Items = items,
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-            TotalRecords = totalRecords,
-            TotalPages = totalPages
-        };
+        return (items, totalRecords);
     }
 
     public Task<SalesInvoice?> GetSalesInvoiceByIdAsync(int id, CancellationToken cancellationToken = default)
@@ -192,7 +199,11 @@ public class SalesInvoiceRepository : ISalesInvoiceRepository
             {
                 part.IncreaseStock(item.Quantity);
             }
-        return (items, totalRecords);
+        }
+
+        _dbContext.SalesInvoices.Remove(salesInvoice);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
 
     public Task<SalesInvoice?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
@@ -223,9 +234,6 @@ public class SalesInvoiceRepository : ISalesInvoiceRepository
         await transaction.CommitAsync(cancellationToken);
     }
 
-    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        await _dbContext.SaveChangesAsync(cancellationToken);
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return _dbContext.SaveChangesAsync(cancellationToken);
