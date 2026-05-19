@@ -33,14 +33,6 @@ public class CustomerProfileRepository : ICustomerProfileRepository
     public async Task<PaginatedResponse<CustomerProfile>> GetCustomersForStaffAsync(string? search, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.CustomerProfiles
-    public async Task<(IReadOnlyCollection<CustomerDirectoryItemResponse> Items, int TotalRecords)> GetCustomersAsync(
-        string? search,
-        int pageNumber,
-        int pageSize,
-        CancellationToken cancellationToken = default)
-    {
-        var query = _dbContext.CustomerProfiles
-            .AsNoTracking()
             .Include(x => x.User)
             .Include(x => x.Vehicles)
             .AsQueryable();
@@ -70,6 +62,23 @@ public class CustomerProfileRepository : ICustomerProfileRepository
             PageNumber = page,
             PageSize = pageSize,
             TotalPages = totalRecords == 0 ? 0 : (int)Math.Ceiling(totalRecords / (double)pageSize)
+        };
+    }
+
+    public async Task<(IReadOnlyCollection<CustomerDirectoryItemResponse> Items, int TotalRecords)> GetCustomersAsync(
+        string? search,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.CustomerProfiles
+            .AsNoTracking()
+            .Include(x => x.User)
+            .Include(x => x.Vehicles)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
             var normalizedSearch = search.Trim().ToLower();
             query = query.Where(x =>
                 x.User.FullName.ToLower().Contains(normalizedSearch) ||
@@ -104,6 +113,7 @@ public class CustomerProfileRepository : ICustomerProfileRepository
             .Include(x => x.SalesInvoices)
                 .ThenInclude(x => x.Vehicle)
             .Include(x => x.ServiceInvoices)
+                .ThenInclude(x => x.ServiceRecord)
             .Include(x => x.Payments)
                 .ThenInclude(x => x.SalesInvoice)
             .SingleOrDefaultAsync(x => x.CustomerId == customerId, cancellationToken);

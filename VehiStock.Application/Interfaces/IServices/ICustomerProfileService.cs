@@ -11,5 +11,5 @@ public interface ICustomerProfileService
     Task<PaginatedResponse<StaffCustomerResponse>> GetCustomersForStaffAsync(string? search, int page, int pageSize, CancellationToken cancellationToken = default);
     Task<PaginatedResponse<CustomerDirectoryItemResponse>> GetCustomersAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<CustomerDirectoryDetailResponse> GetCustomerDetailAsync(int customerId, CancellationToken cancellationToken = default);
-    Task<StaffCustomerHistoryResponse> GetCustomerHistoryAsync(int customerId, CancellationToken cancellationToken = default);
+    Task<VehiStock.Application.Dtos.Management.StaffCustomerHistoryResponse> GetCustomerHistoryAsync(int customerId, CancellationToken cancellationToken = default);
 }
