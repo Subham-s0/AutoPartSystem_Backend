@@ -41,46 +41,6 @@ public class CustomerProfileService : ICustomerProfileService
         };
     }
 
-    public async Task<StaffCustomerHistoryResponse> GetCustomerHistoryAsync(int customerId, CancellationToken cancellationToken = default)
-    {
-        var customer = await _customerProfileRepository.GetCustomerProfileByIdAsync(customerId, cancellationToken);
-        if (customer is null)
-            throw new InvalidOperationException("Customer profile not found.");
-
-        var purchaseHistory = await _customerHistoryRepository.GetPurchaseHistoryAsync(customerId, cancellationToken);
-        // Assuming we need Service History too, wait, ICustomerHistoryRepository has GetServiceHistoryPageAsync but not a full list. Let's just use it with large page size or something.
-        // Actually, ICustomerHistoryRepository.GetServiceHistoryPageAsync(customerId, new ServiceHistoryQueryRequest { PageSize = 100 }, cancellationToken)
-        var serviceHistory = await _customerHistoryRepository.GetServiceHistoryPageAsync(customerId, new ServiceHistoryQueryRequest { PageNumber = 1, PageSize = 100 }, cancellationToken);
-
-        var historyItems = new List<StaffCustomerHistoryItem>();
-
-        foreach (var inv in purchaseHistory)
-        {
-            historyItems.Add(new StaffCustomerHistoryItem
-            {
-                Type = "SalesInvoice",
-                Id = inv.SalesInvoiceId,
-                Date = inv.InvoiceDate.ToDateTime(TimeOnly.MinValue),
-                Description = $"Part Sales Invoice - {inv.PaymentStatus}",
-                Amount = inv.TotalAmount,
-                Status = inv.PaymentStatus.ToString()
-            });
-        }
-
-        foreach (var srv in serviceHistory.Items)
-        {
-            historyItems.Add(new StaffCustomerHistoryItem
-            {
-                Type = "ServiceRecord",
-                Id = srv.ServiceRecordId,
-                Date = srv.ServiceDate.ToDateTime(TimeOnly.MinValue),
-                Description = $"Service: {srv.Vehicle?.VehicleNumber} - {srv.Diagnosis}",
-                Amount = srv.TotalCharge,
-                Status = srv.Status.ToString()
-            });
-        }
-
-        historyItems = historyItems.OrderByDescending(x => x.Date).ToList();
     public async Task<PaginatedResponse<CustomerDirectoryItemResponse>> GetCustomersAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         var normalizedPageNumber = Math.Max(1, pageNumber);
@@ -174,7 +134,7 @@ public class CustomerProfileService : ICustomerProfileService
         };
     }
 
-    public async Task<StaffCustomerHistoryResponse> GetCustomerHistoryAsync(int customerId, CancellationToken cancellationToken = default)
+    public async Task<VehiStock.Application.Dtos.Management.StaffCustomerHistoryResponse> GetCustomerHistoryAsync(int customerId, CancellationToken cancellationToken = default)
     {
         var customer = await _customerProfileRepository.GetCustomerDetailByIdAsync(customerId, cancellationToken);
         if (customer is null)
@@ -196,24 +156,18 @@ public class CustomerProfileService : ICustomerProfileService
         {
             Type = nameof(ServiceInvoice),
             Id = x.ServiceInvoiceId,
-            Date = x.IssuedAt,
-            Description = $"Service invoice {x.InvoiceNo}",
+            Date = x.ServiceRecord != null ? x.ServiceRecord.ServiceDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc) : DateTime.UtcNow,
+            Description = $"Service invoice SRV-INV-{x.ServiceInvoiceId}",
             Amount = x.TotalAmount,
             Status = x.PaymentStatus.ToString()
         });
 
-        return new StaffCustomerHistoryResponse
+        return new VehiStock.Application.Dtos.Management.StaffCustomerHistoryResponse
         {
             CustomerId = customer.CustomerId,
             FullName = customer.User?.FullName ?? string.Empty,
             Email = customer.User?.Email ?? string.Empty,
             PhoneNumber = customer.User?.PhoneNumber ?? string.Empty,
-            TotalSpent = purchaseHistory.Where(x => x.PaymentStatus == VehiStock.Entities.PaymentStatus.Paid).Sum(x => x.TotalAmount) + 
-                         serviceHistory.Items.Where(x => x.Status == VehiStock.Entities.ServiceRecordStatus.Closed).Sum(x => x.TotalCharge),
-            HistoryItems = historyItems
-            FullName = customer.User.FullName,
-            Email = customer.User.Email ?? string.Empty,
-            PhoneNumber = customer.User.PhoneNumber,
             TotalSpent = customer.SalesInvoices.Sum(x => x.TotalAmount) + customer.ServiceInvoices.Sum(x => x.TotalAmount),
             HistoryItems = salesHistory
                 .Concat(serviceHistory)

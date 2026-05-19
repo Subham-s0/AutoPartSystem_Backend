@@ -1,13 +1,9 @@
 using VehiStock.Application.Dtos.Staff;
 using VehiStock.Application.Interfaces.IRepositories;
+using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Entities;
 
 namespace VehiStock.Infrastructure.Services;
-
-public interface IServiceInvoiceService
-{
-    Task<ServiceInvoiceResponse> CreateAsync(int serviceRecordId, CancellationToken cancellationToken = default);
-}
 
 public class ServiceInvoiceService : IServiceInvoiceService
 {

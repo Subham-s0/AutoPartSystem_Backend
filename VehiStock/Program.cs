@@ -129,6 +129,7 @@ builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
 builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IAdminPartRequestRepository, AdminPartRequestRepository>();
+builder.Services.AddScoped<IServiceRecordRepository, ServiceRecordRepository>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
@@ -148,6 +149,8 @@ builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IStaffDashboardService, StaffDashboardService>();
 builder.Services.AddScoped<IStaffAppointmentService, StaffAppointmentService>();
 builder.Services.AddScoped<IAdminPartRequestService, AdminPartRequestService>();
+builder.Services.AddScoped<IServiceRecordService, ServiceRecordService>();
+builder.Services.AddScoped<IServiceInvoiceService, ServiceInvoiceService>();
 
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -242,6 +245,71 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.MigrateAsync();
     await RoleSeeder.SeedAsync(roleManager);
     await AdminSeeder.SeedAsync(roleManager, userManager, seedSettings);
+
+    // Seed/Ensure Staff accounts exist with requested password Staff@1234
+    var staffEmails = new[] { "staff@vehistock.com", "satff@vehistock.com" };
+    foreach (var email in staffEmails)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            user = new ApplicationUser
+            {
+                FullName = email == "satff@vehistock.com" ? "Seeded Satff Member" : "Default Staff",
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true,
+                IsActive = true
+            };
+            var createRes = await userManager.CreateAsync(user, "Staff@1234");
+            if (!createRes.Succeeded)
+            {
+                var errors = string.Join(", ", createRes.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Failed to seed staff user '{email}': {errors}");
+            }
+            
+            await userManager.AddToRoleAsync(user, VehiStock.Domain.Constants.RoleNames.Staff);
+        }
+        else
+        {
+            var isPassValid = await userManager.CheckPasswordAsync(user, "Staff@1234");
+            if (!isPassValid)
+            {
+                var removeRes = await userManager.RemovePasswordAsync(user);
+                if (removeRes.Succeeded)
+                {
+                    var addRes = await userManager.AddPasswordAsync(user, "Staff@1234");
+                    if (!addRes.Succeeded)
+                    {
+                        var errors = string.Join(", ", addRes.Errors.Select(e => e.Description));
+                        throw new InvalidOperationException($"Failed to set password for '{email}': {errors}");
+                    }
+                }
+            }
+
+            if (!await userManager.IsInRoleAsync(user, VehiStock.Domain.Constants.RoleNames.Staff))
+            {
+                await userManager.AddToRoleAsync(user, VehiStock.Domain.Constants.RoleNames.Staff);
+            }
+        }
+
+        // Programmatically ensure the StaffProfile record exists for foreign key linkages
+        if (user != null && !string.IsNullOrEmpty(user.Id))
+        {
+            var hasProfile = await dbContext.StaffProfiles.AnyAsync(p => p.UserId == user.Id);
+            if (!hasProfile)
+            {
+                var staffProfile = new VehiStock.Entities.StaffProfile
+                {
+                    UserId = user.Id,
+                    JobTitle = "Default Staff",
+                    HireDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                };
+                dbContext.StaffProfiles.Add(staffProfile);
+                await dbContext.SaveChangesAsync();
+            }
+        }
+    }
 }
 #endregion
 

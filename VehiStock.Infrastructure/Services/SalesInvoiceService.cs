@@ -11,11 +11,6 @@ public class SalesInvoiceService : ISalesInvoiceService
 {
     private readonly ISalesInvoiceRepository _salesInvoiceRepository;
     private readonly IEmailService _emailService;
-
-    public SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository, IEmailService emailService)
-    {
-        _salesInvoiceRepository = salesInvoiceRepository;
-        _emailService = emailService;
     private readonly InvoiceTemplateService _invoiceTemplateService;
 
     public SalesInvoiceService(
@@ -98,105 +93,97 @@ public class SalesInvoiceService : ISalesInvoiceService
         var parts = (await _salesInvoiceRepository.GetPartsByIdsAsync(partIds, cancellationToken)).ToDictionary(x => x.PartId);
         if (parts.Count != partIds.Count)
         {
-            throw new InvalidOperationException("One or more parts were not found.");
+            throw new InvalidOperationException("One or more selected parts could not be found.");
         }
-
-        var invoiceItems = new List<SalesInvoiceItem>();
-        var responseItems = new List<SalesInvoiceItemResponse>();
-        decimal subtotal = 0m;
-        decimal lineDiscountTotal = 0m;
-
-        foreach (var item in request.Items)
-        {
-            var part = parts[item.PartId];
-            var gross = part.UnitPrice * item.Quantity;
-            if (item.DiscountAmount > gross)
-            {
-                throw new InvalidOperationException($"Discount cannot exceed line amount for part {part.PartName}.");
-            }
-
-            part.DecreaseStock(item.Quantity);
-
-            var lineTotal = gross - item.DiscountAmount;
-            subtotal += gross;
-            lineDiscountTotal += item.DiscountAmount;
-
-            invoiceItems.Add(new SalesInvoiceItem
-            {
-                PartId = part.PartId,
-                Quantity = item.Quantity,
-                UnitPrice = part.UnitPrice,
-                DiscountAmount = item.DiscountAmount,
-                LineTotal = lineTotal
-            });
-
-            responseItems.Add(new SalesInvoiceItemResponse
-            {
-                PartId = part.PartId,
-                PartName = part.PartName,
-                Brand = part.Brand,
-                Quantity = item.Quantity,
-                UnitPrice = part.UnitPrice,
-                DiscountAmount = item.DiscountAmount,
-                LineTotal = lineTotal
-            });
-        }
-
-        var invoiceDiscount = Math.Round(subtotal * (request.DiscountPercent / 100m), 2, MidpointRounding.AwayFromZero);
-        var discountAmount = lineDiscountTotal + invoiceDiscount;
-        var totalAmount = subtotal - discountAmount + request.TaxAmount;
-        if (totalAmount < 0m)
-        {
-            throw new InvalidOperationException("Total amount cannot be negative.");
-        }
-
-        if (request.AmountPaid > totalAmount)
-        {
-            throw new InvalidOperationException("Amount paid cannot exceed total amount.");
-        }
-
-        var balanceDue = totalAmount - request.AmountPaid;
-        var paymentStatus = ResolvePaymentStatus(totalAmount, request.AmountPaid);
 
         var salesInvoice = new SalesInvoice
         {
             InvoiceNo = invoiceNo,
-            CustomerId = customer.CustomerId,
-            VehicleId = vehicle.VehicleId,
+            CustomerId = request.CustomerId,
+            VehicleId = request.VehicleId,
             StaffMemberId = staffProfile.StaffMemberId,
-            InvoiceDate = request.InvoiceDate,
-            Subtotal = subtotal,
+            InvoiceDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            Subtotal = 0m,
             DiscountPercent = request.DiscountPercent,
-            DiscountAmount = discountAmount,
-            TaxAmount = request.TaxAmount,
-            TotalAmount = totalAmount,
+            DiscountAmount = 0m,
+            TaxAmount = 0m,
+            TotalAmount = 0m,
             AmountPaid = request.AmountPaid,
-            BalanceDue = balanceDue,
+            BalanceDue = 0m,
             CreditDueDate = request.CreditDueDate,
-            PaymentType = request.PaymentType,
-            PaymentStatus = paymentStatus,
-            Items = invoiceItems
+            PaymentType = request.PaymentType
         };
 
+        var items = new List<SalesInvoiceItem>();
+        var responseItems = new List<SalesInvoiceItemResponse>();
+
+        foreach (var itemDraft in request.Items)
+        {
+            var part = parts[itemDraft.PartId];
+            if (part.StockQty < itemDraft.Quantity)
+            {
+                throw new InvalidOperationException($"Insufficient stock for part: {part.PartName} (Available: {part.StockQty}, Requested: {itemDraft.Quantity})");
+            }
+
+            part.DecreaseStock(itemDraft.Quantity);
+
+            var lineSubtotal = part.UnitPrice * itemDraft.Quantity;
+            var lineDiscount = itemDraft.DiscountAmount;
+            var lineTotal = lineSubtotal - lineDiscount;
+
+            salesInvoice.Subtotal += lineSubtotal;
+            salesInvoice.DiscountAmount += lineDiscount;
+
+            var invoiceItem = new SalesInvoiceItem
+            {
+                PartId = itemDraft.PartId,
+                Quantity = itemDraft.Quantity,
+                UnitPrice = part.UnitPrice,
+                DiscountAmount = lineDiscount,
+                LineTotal = lineTotal
+            };
+
+            items.Add(invoiceItem);
+
+            responseItems.Add(new SalesInvoiceItemResponse
+            {
+                PartId = invoiceItem.PartId,
+                PartName = part.PartName,
+                Brand = part.Brand,
+                Quantity = invoiceItem.Quantity,
+                UnitPrice = invoiceItem.UnitPrice,
+                DiscountAmount = invoiceItem.DiscountAmount,
+                LineTotal = invoiceItem.LineTotal
+            });
+        }
+
+        salesInvoice.Items = items;
+
+        var mainDiscount = (salesInvoice.Subtotal - salesInvoice.DiscountAmount) * (salesInvoice.DiscountPercent / 100m);
+        salesInvoice.DiscountAmount += mainDiscount;
+
+        var taxableAmount = salesInvoice.Subtotal - salesInvoice.DiscountAmount;
+        salesInvoice.TaxAmount = taxableAmount * 0.13m; // 13% VAT
+        salesInvoice.TotalAmount = taxableAmount + salesInvoice.TaxAmount;
+
+        salesInvoice.PaymentStatus = ResolvePaymentStatus(salesInvoice.TotalAmount, salesInvoice.AmountPaid);
+        salesInvoice.BalanceDue = salesInvoice.TotalAmount - salesInvoice.AmountPaid;
+
         Payment? payment = null;
-        if (request.AmountPaid > 0m)
+        if (salesInvoice.AmountPaid > 0m)
         {
             payment = new Payment
             {
-                SalesInvoice = salesInvoice,
-                CustomerId = customer.CustomerId,
-                PaymentType = request.PaymentType,
-                Amount = request.AmountPaid
+                CustomerId = salesInvoice.CustomerId,
+                Amount = salesInvoice.AmountPaid,
+                PaymentDate = DateTime.UtcNow,
+                PaymentType = salesInvoice.PaymentType,
+                Notes = $"Initial payment for Invoice {salesInvoice.InvoiceNo}"
             };
+            salesInvoice.Payments.Add(payment);
         }
 
         var created = await _salesInvoiceRepository.CreateSalesInvoiceAsync(salesInvoice, payment, cancellationToken);
-
-        created.Customer = customer;
-        created.Vehicle = vehicle;
-        created.StaffMember = staffProfile;
-        created.Items = invoiceItems;
-
         return MapResponse(created, responseItems);
     }
 
@@ -208,26 +195,6 @@ public class SalesInvoiceService : ISalesInvoiceService
 
         return new PaginatedResponse<SalesInvoiceResponse>
         {
-            SalesInvoiceId = created.SalesInvoiceId,
-            InvoiceNo = created.InvoiceNo,
-            CustomerId = created.CustomerId,
-            CustomerName = customer?.User?.FullName ?? "Unknown Customer",
-            VehicleId = created.VehicleId,
-            VehicleNumber = vehicle?.VehicleNumber ?? "Unknown Vehicle",
-            StaffMemberId = created.StaffMemberId,
-            StaffName = staffProfile?.User?.FullName ?? "Unknown Staff",
-            InvoiceDate = created.InvoiceDate,
-            Subtotal = created.Subtotal,
-            DiscountPercent = created.DiscountPercent,
-            DiscountAmount = created.DiscountAmount,
-            TaxAmount = created.TaxAmount,
-            TotalAmount = created.TotalAmount,
-            AmountPaid = created.AmountPaid,
-            BalanceDue = created.BalanceDue,
-            CreditDueDate = created.CreditDueDate,
-            PaymentType = created.PaymentType,
-            PaymentStatus = created.PaymentStatus,
-            Items = responseItems
             Items = items.Select(x => MapResponse(x)).ToList(),
             PageNumber = normalizedPageNumber,
             PageSize = normalizedPageSize,
@@ -258,186 +225,10 @@ public class SalesInvoiceService : ISalesInvoiceService
         await _salesInvoiceRepository.DeleteAsync(invoice, cancellationToken);
     }
 
-    public async Task SendEmailAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var invoice = await _salesInvoiceRepository.GetByIdAsync(id, cancellationToken);
-        if (invoice is null)
-        {
-            throw new InvalidOperationException("Sales invoice was not found.");
-        }
-
-        var customerEmail = invoice.Customer.User.Email;
-        if (string.IsNullOrWhiteSpace(customerEmail))
-        {
-            throw new InvalidOperationException("Customer email is not available for this invoice.");
-        }
-
-        var htmlBody = _invoiceTemplateService.Generate(
-            invoice.Customer.User.FullName,
-            invoice.InvoiceNo,
-            invoice.TotalAmount);
-
-        await _emailService.SendInvoiceEmail(customerEmail, "VehiStock Invoice", htmlBody);
-        invoice.EmailSentAt = DateTime.UtcNow;
-        await _salesInvoiceRepository.SaveChangesAsync(cancellationToken);
-    }
-
-    private static PaymentStatus ResolvePaymentStatus(decimal totalAmount, decimal amountPaid)
-    {
-        if (totalAmount == 0m || amountPaid == totalAmount)
-        {
-            return PaymentStatus.Paid;
-        }
-
-        if (amountPaid == 0m)
-        {
-            return PaymentStatus.Unpaid;
-        }
-
-        return PaymentStatus.Partial;
-    }
-
-    private async Task<string> GenerateInvoiceNoAsync(CancellationToken cancellationToken)
-    {
-        for (var attempt = 0; attempt < 5; attempt++)
-        {
-            var candidate = $"SI-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
-            if (attempt > 0)
-            {
-                candidate = $"{candidate}-{attempt}";
-            }
-
-            if (!await _salesInvoiceRepository.InvoiceExistsAsync(candidate, cancellationToken))
-            {
-                return candidate;
-            }
-
-            await Task.Delay(5, cancellationToken);
-        }
-
-        throw new InvalidOperationException("Unable to generate a unique invoice number.");
-    }
-
     public async Task<IReadOnlyCollection<SalesInvoiceResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var invoices = await _salesInvoiceRepository.GetSalesInvoicesAsync(cancellationToken);
-        return invoices.Select(x => new SalesInvoiceResponse
-        {
-            SalesInvoiceId = x.SalesInvoiceId,
-            InvoiceNo = x.InvoiceNo,
-            CustomerId = x.CustomerId,
-            CustomerName = x.Customer?.User?.FullName ?? "Unknown Customer",
-            VehicleId = x.VehicleId,
-            VehicleNumber = x.Vehicle?.VehicleNumber ?? "Unknown Vehicle",
-            StaffMemberId = x.StaffMemberId,
-            StaffName = x.StaffMember?.User?.FullName ?? "Unknown Staff",
-            InvoiceDate = x.InvoiceDate,
-            Subtotal = x.Subtotal,
-            DiscountPercent = x.DiscountPercent,
-            DiscountAmount = x.DiscountAmount,
-            TaxAmount = x.TaxAmount,
-            TotalAmount = x.TotalAmount,
-            AmountPaid = x.AmountPaid,
-            BalanceDue = x.BalanceDue,
-            CreditDueDate = x.CreditDueDate,
-            PaymentType = x.PaymentType,
-            PaymentStatus = x.PaymentStatus,
-            Items = x.Items?.Select(item => new SalesInvoiceItemResponse
-            {
-                PartId = item.PartId,
-                PartName = item.Part?.PartName ?? "Unknown Part",
-    private static SalesInvoiceResponse MapResponse(SalesInvoice invoice, IReadOnlyCollection<SalesInvoiceItemResponse>? itemsOverride = null)
-    {
-        return new SalesInvoiceResponse
-        {
-            SalesInvoiceId = invoice.SalesInvoiceId,
-            InvoiceNo = invoice.InvoiceNo,
-            CustomerId = invoice.CustomerId,
-            CustomerName = invoice.Customer?.User?.FullName,
-            VehicleId = invoice.VehicleId,
-            VehicleNumber = invoice.Vehicle?.VehicleNumber,
-            StaffMemberId = invoice.StaffMemberId,
-            StaffName = invoice.StaffMember?.User?.FullName,
-            InvoiceDate = invoice.InvoiceDate,
-            Subtotal = invoice.Subtotal,
-            DiscountPercent = invoice.DiscountPercent,
-            DiscountAmount = invoice.DiscountAmount,
-            TaxAmount = invoice.TaxAmount,
-            TotalAmount = invoice.TotalAmount,
-            AmountPaid = invoice.AmountPaid,
-            BalanceDue = invoice.BalanceDue,
-            CreditDueDate = invoice.CreditDueDate,
-            PaymentType = invoice.PaymentType.ToString(),
-            PaymentStatus = invoice.PaymentStatus.ToString(),
-            Items = itemsOverride ?? invoice.Items.Select(item => new SalesInvoiceItemResponse
-            {
-                PartId = item.PartId,
-                PartName = item.Part?.PartName ?? string.Empty,
-                Brand = item.Part?.Brand ?? string.Empty,
-                Quantity = item.Quantity,
-                UnitPrice = item.UnitPrice,
-                DiscountAmount = item.DiscountAmount,
-                LineTotal = item.LineTotal
-            }).ToList() ?? []
-        }).ToList();
-    }
-
-    public async Task<PaginatedResponse<SalesInvoiceResponse>> GetPaginatedAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
-    {
-        var result = await _salesInvoiceRepository.GetSalesInvoicesPaginatedAsync(search, pageNumber, pageSize, cancellationToken);
-        
-        var mappedItems = result.Items.Select(x => new SalesInvoiceResponse
-        {
-            SalesInvoiceId = x.SalesInvoiceId,
-            InvoiceNo = x.InvoiceNo,
-            CustomerId = x.CustomerId,
-            CustomerName = x.Customer?.User?.FullName ?? "Unknown Customer",
-            VehicleId = x.VehicleId,
-            VehicleNumber = x.Vehicle?.VehicleNumber ?? "Unknown Vehicle",
-            StaffMemberId = x.StaffMemberId,
-            StaffName = x.StaffMember?.User?.FullName ?? "Unknown Staff",
-            InvoiceDate = x.InvoiceDate,
-            Subtotal = x.Subtotal,
-            DiscountPercent = x.DiscountPercent,
-            DiscountAmount = x.DiscountAmount,
-            TaxAmount = x.TaxAmount,
-            TotalAmount = x.TotalAmount,
-            AmountPaid = x.AmountPaid,
-            BalanceDue = x.BalanceDue,
-            CreditDueDate = x.CreditDueDate,
-            PaymentType = x.PaymentType,
-            PaymentStatus = x.PaymentStatus,
-            Items = x.Items?.Select(item => new SalesInvoiceItemResponse
-            {
-                PartId = item.PartId,
-                PartName = item.Part?.PartName ?? "Unknown Part",
-                Brand = item.Part?.Brand ?? string.Empty,
-                Quantity = item.Quantity,
-                UnitPrice = item.UnitPrice,
-                DiscountAmount = item.DiscountAmount,
-                LineTotal = item.LineTotal
-            }).ToList() ?? []
-        }).ToList();
-
-        return new PaginatedResponse<SalesInvoiceResponse>
-        {
-            Items = mappedItems,
-            PageNumber = result.PageNumber,
-            PageSize = result.PageSize,
-            TotalRecords = result.TotalRecords,
-            TotalPages = result.TotalPages
-        };
-    }
-
-    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var invoice = await _salesInvoiceRepository.GetSalesInvoiceByIdAsync(id, cancellationToken);
-        if (invoice is null)
-        {
-            throw new InvalidOperationException("Sales invoice not found.");
-        }
-
-        await _salesInvoiceRepository.DeleteSalesInvoiceAsync(invoice, cancellationToken);
+        return invoices.Select(x => MapResponse(x)).ToList();
     }
 
     public async Task SendEmailAsync(int id, CancellationToken cancellationToken = default)
@@ -456,7 +247,6 @@ public class SalesInvoiceService : ISalesInvoiceService
 
         var customerName = invoice.Customer?.User?.FullName ?? "Customer";
 
-        // Build HTML table for items
         var itemsHtml = string.Join("", invoice.Items.Select(item => $@"
             <tr>
                 <td style='padding: 10px; border-bottom: 1px solid #e2e8f0; color: #334155;'>{item.Part?.PartName ?? "Unknown Part"}</td>
@@ -512,7 +302,76 @@ public class SalesInvoiceService : ISalesInvoiceService
         invoice.EmailSentAt = DateTime.UtcNow;
         await _salesInvoiceRepository.SaveChangesAsync(cancellationToken);
     }
-            }).ToList()
+
+    private static PaymentStatus ResolvePaymentStatus(decimal totalAmount, decimal amountPaid)
+    {
+        if (totalAmount == 0m || amountPaid == totalAmount)
+        {
+            return PaymentStatus.Paid;
+        }
+
+        if (amountPaid == 0m)
+        {
+            return PaymentStatus.Unpaid;
+        }
+
+        return PaymentStatus.Partial;
+    }
+
+    private async Task<string> GenerateInvoiceNoAsync(CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            var candidate = $"SI-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+            if (attempt > 0)
+            {
+                candidate = $"{candidate}-{attempt}";
+            }
+
+            if (!await _salesInvoiceRepository.InvoiceExistsAsync(candidate, cancellationToken))
+            {
+                return candidate;
+            }
+
+            await Task.Delay(5, cancellationToken);
+        }
+
+        throw new InvalidOperationException("Unable to generate a unique invoice number.");
+    }
+
+    private static SalesInvoiceResponse MapResponse(SalesInvoice invoice, IReadOnlyCollection<SalesInvoiceItemResponse>? itemsOverride = null)
+    {
+        return new SalesInvoiceResponse
+        {
+            SalesInvoiceId = invoice.SalesInvoiceId,
+            InvoiceNo = invoice.InvoiceNo,
+            CustomerId = invoice.CustomerId,
+            CustomerName = invoice.Customer?.User?.FullName ?? string.Empty,
+            VehicleId = invoice.VehicleId,
+            VehicleNumber = invoice.Vehicle?.VehicleNumber ?? string.Empty,
+            StaffMemberId = invoice.StaffMemberId,
+            StaffName = invoice.StaffMember?.User?.FullName ?? string.Empty,
+            InvoiceDate = invoice.InvoiceDate,
+            Subtotal = invoice.Subtotal,
+            DiscountPercent = invoice.DiscountPercent,
+            DiscountAmount = invoice.DiscountAmount,
+            TaxAmount = invoice.TaxAmount,
+            TotalAmount = invoice.TotalAmount,
+            AmountPaid = invoice.AmountPaid,
+            BalanceDue = invoice.BalanceDue,
+            CreditDueDate = invoice.CreditDueDate,
+            PaymentType = invoice.PaymentType.ToString(),
+            PaymentStatus = invoice.PaymentStatus.ToString(),
+            Items = itemsOverride ?? invoice.Items.Select(item => new SalesInvoiceItemResponse
+            {
+                PartId = item.PartId,
+                PartName = item.Part?.PartName ?? string.Empty,
+                Brand = item.Part?.Brand ?? string.Empty,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                DiscountAmount = item.DiscountAmount,
+                LineTotal = item.LineTotal
+            }).ToList() ?? []
         };
     }
 }
