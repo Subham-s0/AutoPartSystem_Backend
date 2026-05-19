@@ -6,11 +6,11 @@ public class SalesInvoiceResponse
     public int SalesInvoiceId { get; set; }
     public string InvoiceNo { get; set; } = string.Empty;
     public int CustomerId { get; set; }
-    public string CustomerName { get; set; } = string.Empty;
+    public string? CustomerName { get; set; }
     public int VehicleId { get; set; }
-    public string VehicleNumber { get; set; } = string.Empty;
+    public string? VehicleNumber { get; set; }
     public int StaffMemberId { get; set; }
-    public string StaffName { get; set; } = string.Empty;
+    public string? StaffName { get; set; }
     public DateOnly InvoiceDate { get; set; }
     public decimal Subtotal { get; set; }
     public decimal DiscountPercent { get; set; }

@@ -137,7 +137,6 @@ public class ServiceInvoiceService : IServiceInvoiceService
         {
             // Fail silently so SMTP config issues do not block DB transactions
         }
-
         return new ServiceInvoiceResponse
         {
             ServiceInvoiceId = serviceInvoice.ServiceInvoiceId,

@@ -39,6 +39,7 @@ public class ServiceRecordService : IServiceRecordService
         return MapToResponse(created);
     }
 
+
     public async Task<ServiceRecordResponse> CreateAsync(string staffUserId, CreateServiceRecordRequest request, CancellationToken cancellationToken = default)
     {
         var staff = await _serviceRecordRepository.GetStaffProfileByUserIdAsync(staffUserId, cancellationToken);
@@ -104,6 +105,7 @@ public class ServiceRecordService : IServiceRecordService
         var created = await _serviceRecordRepository.CreateAsync(serviceRecord, cancellationToken);
         return MapToResponse(created);
     }
+
 
     public async Task<ServiceRecordResponse> UpdateAsync(int serviceRecordId, UpdateServiceRecordRequest request, CancellationToken cancellationToken = default)
     {
@@ -219,7 +221,6 @@ public class ServiceRecordService : IServiceRecordService
         var list = await _serviceRecordRepository.GetListAsync(cancellationToken);
         return list.Select(MapToResponse).ToList();
     }
-
     private static bool IsReadyForBilling(ServiceRecord record)
     {
         return !string.IsNullOrWhiteSpace(record.Diagnosis) &&

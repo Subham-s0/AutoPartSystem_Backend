@@ -37,6 +37,7 @@ VehiStock/wwwroot/uploads/
 .env
 .env.*
 appsettings.Development.json
+
 VehiStock/appsettings.Development.json
 secrets.json
 

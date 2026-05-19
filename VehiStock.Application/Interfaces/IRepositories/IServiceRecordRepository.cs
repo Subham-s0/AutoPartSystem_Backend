@@ -16,7 +16,6 @@ public interface IServiceRecordRepository
     Task<Appointment?> GetAppointmentByIdAsync(int appointmentId, CancellationToken cancellationToken = default);
     
     Task<StaffProfile?> GetStaffProfileByUserIdAsync(string userId, CancellationToken cancellationToken = default);
-
     Task<IReadOnlyCollection<ServiceRecord>> GetListAsync(CancellationToken cancellationToken = default);
 
     Task<CustomerProfile?> GetCustomerAsync(int customerId, CancellationToken cancellationToken = default);

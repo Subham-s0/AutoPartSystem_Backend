@@ -135,7 +135,6 @@ public class StaffServiceRecordsController : ControllerBase
             return StatusCode(500, ApiResponse<ServiceRecordResponse>.Fail("An unexpected error occurred: " + ex.Message));
         }
     }
-
     [HttpPost("{id:int}/invoice")]
     public async Task<ActionResult<ApiResponse<ServiceInvoiceResponse>>> GenerateInvoice(
         int id,
