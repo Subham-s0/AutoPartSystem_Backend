@@ -21,6 +21,9 @@ public class PartRequest
 
     public string? Details { get; set; }
 
+    [MaxLength(500)]
+    public string? PhotoUrl { get; set; }
+
     public DateTime RequestDate { get; set; } = DateTime.UtcNow;
 
     public PartRequestStatus Status { get; set; }

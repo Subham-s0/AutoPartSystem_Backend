@@ -40,13 +40,29 @@ public class CustomerPartRequestsController : ControllerBase
     }
 
     [HttpPost]
+    [Consumes("multipart/form-data")]
     public async Task<ActionResult<ApiResponse<PartRequestResponse>>> CreatePartRequest(
-        CreatePartRequestRequest request,
+        [FromForm] CreatePartRequestFormRequest request,
         CancellationToken cancellationToken)
     {
         try
         {
-            var partRequest = await _partRequestService.CreatePartRequestAsync(GetCurrentUserId(), request, cancellationToken);
+            var mappedRequest = new CreatePartRequestRequest
+            {
+                VehicleId = request.VehicleId,
+                RequestedPartName = request.RequestedPartName,
+                Quantity = request.Quantity,
+                Details = request.Details,
+                Photo = request.Photo == null ? null : new ImageUploadFile(
+                    request.Photo.FileName,
+                    request.Photo.ContentType,
+                    request.Photo.Length,
+                    request.Photo.OpenReadStream,
+                    request.Photo.CopyToAsync),
+                PhotoUrl = request.PhotoUrl
+            };
+
+            var partRequest = await _partRequestService.CreatePartRequestAsync(GetCurrentUserId(), mappedRequest, cancellationToken);
             return Ok(ApiResponse<PartRequestResponse>.Ok(partRequest, "Part request submitted successfully."));
         }
         catch (InvalidOperationException ex)

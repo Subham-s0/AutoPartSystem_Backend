@@ -40,4 +40,14 @@ public class ServiceRecordRepository : IServiceRecordRepository
         return await GetByIdAsync(record.ServiceRecordId, cancellationToken) 
             ?? throw new InvalidOperationException("Service record update failed.");
     }
+
+    public Task<Appointment?> GetAppointmentByIdAsync(int appointmentId, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Appointments.SingleOrDefaultAsync(x => x.AppointmentId == appointmentId, cancellationToken);
+    }
+
+    public Task<StaffProfile?> GetStaffProfileByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.StaffProfiles.SingleOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+    }
 }

@@ -98,6 +98,57 @@ public class VehicleService : IVehicleService
         }
     }
 
+    public async Task<CustomerVehicleResponse> CreateVehicleForCustomerAsync(int customerId, CreateVehicleRequest request, CancellationToken cancellationToken = default)
+    {
+        var customer = await _vehicleRepository.GetCustomerProfileByIdAsync(customerId, cancellationToken);
+        if (customer is null)
+        {
+            throw new InvalidOperationException("Customer was not found.");
+        }
+
+        var vehicleNumber = request.VehicleNumber.Trim();
+
+        if (await _vehicleRepository.VehicleNumberExistsAsync(vehicleNumber, cancellationToken: cancellationToken))
+        {
+            throw new InvalidOperationException("A vehicle with this number is already registered.");
+        }
+
+        string? vehiclePhotoUrl = null;
+
+        try
+        {
+            if (request.VehiclePhoto is not null)
+            {
+                vehiclePhotoUrl = await _imageStorageService.SaveImageAsync(
+                    request.VehiclePhoto,
+                    VehicleImageFolder,
+                    cancellationToken);
+            }
+
+            var vehicle = new Vehicle
+            {
+                CustomerId = customer.CustomerId,
+                VehicleNumber = vehicleNumber,
+                Make = request.Make.Trim(),
+                Model = request.Model.Trim(),
+                ManufactureYear = request.ManufactureYear,
+                EngineNo = NormalizeOptionalText(request.EngineNo),
+                ChassisNo = NormalizeOptionalText(request.ChassisNo),
+                VehiclePhotoUrl = vehiclePhotoUrl,
+                MileageKm = request.MileageKm,
+                Notes = NormalizeOptionalText(request.Notes)
+            };
+
+            var createdVehicle = await _vehicleRepository.CreateVehicleAsync(vehicle, cancellationToken);
+            return MapVehicle(createdVehicle);
+        }
+        catch
+        {
+            _imageStorageService.DeleteImage(vehiclePhotoUrl);
+            throw;
+        }
+    }
+
     public async Task<CustomerVehicleResponse> UpdateVehicleAsync(string userId, int vehicleId, UpdateVehicleRequest request, CancellationToken cancellationToken = default)
     {
         var customer = await GetCustomerProfileAsync(userId, cancellationToken);

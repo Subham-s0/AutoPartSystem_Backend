@@ -1,11 +1,10 @@
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
-using VehiStock.Application.Dtos.Common;
 
 namespace VehiStock.Application.Dtos.Customer;
 
-public class CreatePartRequestRequest
+public class CreatePartRequestFormRequest
 {
-    [Range(1, int.MaxValue)]
     public int? VehicleId { get; set; }
 
     [Required]
@@ -17,8 +16,9 @@ public class CreatePartRequestRequest
     [MaxLength(1000)]
     public string? Details { get; set; }
 
-    public ImageUploadFile? Photo { get; set; }
+    public IFormFile? Photo { get; set; }
 
     [MaxLength(500)]
+    [Url]
     public string? PhotoUrl { get; set; }
 }

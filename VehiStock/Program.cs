@@ -43,6 +43,14 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
+
+    options.AddPolicy("PostmanPolicy", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
 });
 
 #region IDENTITY
@@ -120,6 +128,7 @@ builder.Services.AddScoped<IStaffManagementRepository, StaffManagementRepository
 builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
 builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
+builder.Services.AddScoped<IAdminPartRequestRepository, AdminPartRequestRepository>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
@@ -138,6 +147,7 @@ builder.Services.AddScoped<IStaffReportService, StaffReportService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IStaffDashboardService, StaffDashboardService>();
 builder.Services.AddScoped<IStaffAppointmentService, StaffAppointmentService>();
+builder.Services.AddScoped<IAdminPartRequestService, AdminPartRequestService>();
 
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -213,8 +223,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 app.UseCors(FrontendCorsPolicy);
-
 app.UseCors("AllowReactApp");
+app.UseCors("PostmanPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();

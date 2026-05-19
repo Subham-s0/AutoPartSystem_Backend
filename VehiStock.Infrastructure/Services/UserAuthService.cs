@@ -21,6 +21,7 @@ public class UserAuthService : IUserAuthService
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IUserAuthRepository _userAuthRepository;
     private readonly IJwtService _jwtService;
+    private readonly IEmailService _emailService;
     private readonly GoogleAuthSettings _googleAuthSettings;
 
     public UserAuthService(
@@ -28,12 +29,14 @@ public class UserAuthService : IUserAuthService
         RoleManager<ApplicationRole> roleManager,
         IUserAuthRepository userAuthRepository,
         IJwtService jwtService,
+        IEmailService emailService,
         IOptions<GoogleAuthSettings> googleAuthOptions)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _userAuthRepository = userAuthRepository;
         _jwtService = jwtService;
+        _emailService = emailService;
         _googleAuthSettings = googleAuthOptions.Value;
     }
 
@@ -462,5 +465,67 @@ public class UserAuthService : IUserAuthService
             refreshTokenExpiresAtUtc,
             customerId,
             staffMemberId);
+    }
+
+    public async Task<PasswordResetResult> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            return PasswordResetResult.Failure("Email is required.");
+        }
+
+        var user = await _userManager.FindByEmailAsync(request.Email.Trim());
+        if (user is null || !user.IsActive)
+        {
+            return PasswordResetResult.Failure("User with this email was not found.");
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var resetLink = $"http://localhost:5173/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
+
+        var mailBody = $@"
+            <html>
+            <body style='font-family:Arial'>
+                <h2>VehiStock Password Reset Request</h2>
+                <p>Hello {user.FullName},</p>
+                <p>We received a request to reset your password. Click the link below to set a new password:</p>
+                <p><a href='{resetLink}' style='background-color:#4CAF50;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;display:inline-block;'>Reset Password</a></p>
+                <p>Or copy and paste this link into your browser:</p>
+                <p>{resetLink}</p>
+                <br/><p>If you did not make this request, please ignore this email.</p>
+            </body>
+            </html>";
+
+        try
+        {
+            await _emailService.SendEmailAsync(user.Email!, "VehiStock Password Reset Request", mailBody);
+            return PasswordResetResult.Success();
+        }
+        catch (Exception ex)
+        {
+            return PasswordResetResult.Failure($"SMTP Failed: {ex.Message}");
+        }
+    }
+
+    public async Task<PasswordResetResult> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
+        {
+            return PasswordResetResult.Failure("Email, Token, and New Password are required.");
+        }
+
+        var user = await _userManager.FindByEmailAsync(request.Email.Trim());
+        if (user is null || !user.IsActive)
+        {
+            return PasswordResetResult.Failure("User not found.");
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        if (!result.Succeeded)
+        {
+            return PasswordResetResult.Failure(result.Errors.Select(x => x.Description));
+        }
+
+        return PasswordResetResult.Success();
     }
 }

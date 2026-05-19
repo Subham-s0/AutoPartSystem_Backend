@@ -1,3 +1,4 @@
+using VehiStock.Application.Dtos.Common;
 using VehiStock.Application.Dtos.Staff;
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Application.Interfaces.IServices;
@@ -9,10 +10,12 @@ namespace VehiStock.Infrastructure.Services;
 public class SalesInvoiceService : ISalesInvoiceService
 {
     private readonly ISalesInvoiceRepository _salesInvoiceRepository;
+    private readonly IEmailService _emailService;
 
-    public SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository)
+    public SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository, IEmailService emailService)
     {
         _salesInvoiceRepository = salesInvoiceRepository;
+        _emailService = emailService;
     }
 
     public async Task<SalesInvoiceLookupResponse> GetLookupAsync(CancellationToken cancellationToken = default)
@@ -184,8 +187,11 @@ public class SalesInvoiceService : ISalesInvoiceService
             SalesInvoiceId = created.SalesInvoiceId,
             InvoiceNo = created.InvoiceNo,
             CustomerId = created.CustomerId,
+            CustomerName = customer?.User?.FullName ?? "Unknown Customer",
             VehicleId = created.VehicleId,
+            VehicleNumber = vehicle?.VehicleNumber ?? "Unknown Vehicle",
             StaffMemberId = created.StaffMemberId,
+            StaffName = staffProfile?.User?.FullName ?? "Unknown Staff",
             InvoiceDate = created.InvoiceDate,
             Subtotal = created.Subtotal,
             DiscountPercent = created.DiscountPercent,
@@ -235,5 +241,173 @@ public class SalesInvoiceService : ISalesInvoiceService
         }
 
         throw new InvalidOperationException("Unable to generate a unique invoice number.");
+    }
+
+    public async Task<IReadOnlyCollection<SalesInvoiceResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var invoices = await _salesInvoiceRepository.GetSalesInvoicesAsync(cancellationToken);
+        return invoices.Select(x => new SalesInvoiceResponse
+        {
+            SalesInvoiceId = x.SalesInvoiceId,
+            InvoiceNo = x.InvoiceNo,
+            CustomerId = x.CustomerId,
+            CustomerName = x.Customer?.User?.FullName ?? "Unknown Customer",
+            VehicleId = x.VehicleId,
+            VehicleNumber = x.Vehicle?.VehicleNumber ?? "Unknown Vehicle",
+            StaffMemberId = x.StaffMemberId,
+            StaffName = x.StaffMember?.User?.FullName ?? "Unknown Staff",
+            InvoiceDate = x.InvoiceDate,
+            Subtotal = x.Subtotal,
+            DiscountPercent = x.DiscountPercent,
+            DiscountAmount = x.DiscountAmount,
+            TaxAmount = x.TaxAmount,
+            TotalAmount = x.TotalAmount,
+            AmountPaid = x.AmountPaid,
+            BalanceDue = x.BalanceDue,
+            CreditDueDate = x.CreditDueDate,
+            PaymentType = x.PaymentType,
+            PaymentStatus = x.PaymentStatus,
+            Items = x.Items?.Select(item => new SalesInvoiceItemResponse
+            {
+                PartId = item.PartId,
+                PartName = item.Part?.PartName ?? "Unknown Part",
+                Brand = item.Part?.Brand ?? string.Empty,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                DiscountAmount = item.DiscountAmount,
+                LineTotal = item.LineTotal
+            }).ToList() ?? []
+        }).ToList();
+    }
+
+    public async Task<PaginatedResponse<SalesInvoiceResponse>> GetPaginatedAsync(string? search, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var result = await _salesInvoiceRepository.GetSalesInvoicesPaginatedAsync(search, pageNumber, pageSize, cancellationToken);
+        
+        var mappedItems = result.Items.Select(x => new SalesInvoiceResponse
+        {
+            SalesInvoiceId = x.SalesInvoiceId,
+            InvoiceNo = x.InvoiceNo,
+            CustomerId = x.CustomerId,
+            CustomerName = x.Customer?.User?.FullName ?? "Unknown Customer",
+            VehicleId = x.VehicleId,
+            VehicleNumber = x.Vehicle?.VehicleNumber ?? "Unknown Vehicle",
+            StaffMemberId = x.StaffMemberId,
+            StaffName = x.StaffMember?.User?.FullName ?? "Unknown Staff",
+            InvoiceDate = x.InvoiceDate,
+            Subtotal = x.Subtotal,
+            DiscountPercent = x.DiscountPercent,
+            DiscountAmount = x.DiscountAmount,
+            TaxAmount = x.TaxAmount,
+            TotalAmount = x.TotalAmount,
+            AmountPaid = x.AmountPaid,
+            BalanceDue = x.BalanceDue,
+            CreditDueDate = x.CreditDueDate,
+            PaymentType = x.PaymentType,
+            PaymentStatus = x.PaymentStatus,
+            Items = x.Items?.Select(item => new SalesInvoiceItemResponse
+            {
+                PartId = item.PartId,
+                PartName = item.Part?.PartName ?? "Unknown Part",
+                Brand = item.Part?.Brand ?? string.Empty,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice,
+                DiscountAmount = item.DiscountAmount,
+                LineTotal = item.LineTotal
+            }).ToList() ?? []
+        }).ToList();
+
+        return new PaginatedResponse<SalesInvoiceResponse>
+        {
+            Items = mappedItems,
+            PageNumber = result.PageNumber,
+            PageSize = result.PageSize,
+            TotalRecords = result.TotalRecords,
+            TotalPages = result.TotalPages
+        };
+    }
+
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var invoice = await _salesInvoiceRepository.GetSalesInvoiceByIdAsync(id, cancellationToken);
+        if (invoice is null)
+        {
+            throw new InvalidOperationException("Sales invoice not found.");
+        }
+
+        await _salesInvoiceRepository.DeleteSalesInvoiceAsync(invoice, cancellationToken);
+    }
+
+    public async Task SendEmailAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var invoice = await _salesInvoiceRepository.GetSalesInvoiceByIdAsync(id, cancellationToken);
+        if (invoice is null)
+        {
+            throw new InvalidOperationException("Sales invoice not found.");
+        }
+
+        var customerEmail = invoice.Customer?.User?.Email;
+        if (string.IsNullOrWhiteSpace(customerEmail))
+        {
+            throw new InvalidOperationException("Customer email address is not available.");
+        }
+
+        var customerName = invoice.Customer?.User?.FullName ?? "Customer";
+
+        // Build HTML table for items
+        var itemsHtml = string.Join("", invoice.Items.Select(item => $@"
+            <tr>
+                <td style='padding: 10px; border-bottom: 1px solid #e2e8f0; color: #334155;'>{item.Part?.PartName ?? "Unknown Part"}</td>
+                <td style='padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: center; color: #334155;'>{item.Quantity}</td>
+                <td style='padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #334155;'>NPR {item.UnitPrice:N2}</td>
+                <td style='padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #334155;'>NPR {item.LineTotal:N2}</td>
+            </tr>
+        "));
+
+        var htmlBody = $@"
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);'>
+                <div style='background-color: #059669; color: white; padding: 25px 20px; text-align: center;'>
+                    <h1 style='margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.5px;'>VehiStock Auto Parts</h1>
+                    <p style='margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;'>Invoice #{invoice.InvoiceNo}</p>
+                </div>
+                
+                <div style='padding: 30px; background-color: #ffffff;'>
+                    <p style='font-size: 16px; color: #334155; margin-top: 0;'>Hello <strong>{customerName}</strong>,</p>
+                    <p style='font-size: 16px; color: #334155; line-height: 1.5;'>Thank you for your business. Here are the details of your recent purchase on {invoice.InvoiceDate.ToString("MMMM dd, yyyy")}:</p>
+                    
+                    <table style='width: 100%; border-collapse: collapse; margin-top: 25px; margin-bottom: 25px;'>
+                        <thead>
+                            <tr style='background-color: #f8fafc; text-align: left;'>
+                                <th style='padding: 12px 10px; border-bottom: 2px solid #cbd5e1; color: #475569; font-size: 14px;'>Part</th>
+                                <th style='padding: 12px 10px; border-bottom: 2px solid #cbd5e1; text-align: center; color: #475569; font-size: 14px;'>Qty</th>
+                                <th style='padding: 12px 10px; border-bottom: 2px solid #cbd5e1; text-align: right; color: #475569; font-size: 14px;'>Unit Price</th>
+                                <th style='padding: 12px 10px; border-bottom: 2px solid #cbd5e1; text-align: right; color: #475569; font-size: 14px;'>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {itemsHtml}
+                        </tbody>
+                    </table>
+
+                    <div style='text-align: right; font-size: 15px; color: #334155; border-top: 1px solid #f1f5f9; padding-top: 15px;'>
+                        <p style='margin: 5px 0;'><strong>Subtotal:</strong> NPR {invoice.Subtotal:N2}</p>
+                        <p style='margin: 5px 0;'><strong>Tax:</strong> NPR {invoice.TaxAmount:N2}</p>
+                        <p style='margin: 10px 0 0 0; font-size: 18px; color: #059669;'><strong>Total Amount:</strong> NPR {invoice.TotalAmount:N2}</p>
+                    </div>
+
+                    <p style='font-size: 14px; color: #64748b; text-align: center; margin-top: 35px; padding-top: 20px; border-top: 1px solid #f1f5f9; line-height: 1.5;'>
+                        If you have any questions, please reply to this email or contact us at <a href='mailto:vehistock@gmail.com' style='color: #059669; text-decoration: none; font-weight: 500;'>vehistock@gmail.com</a>.
+                    </p>
+                </div>
+            </div>
+        ";
+
+        var subject = $"Your Invoice from VehiStock Auto Parts ({invoice.InvoiceNo})";
+        
+        await _emailService.SendInvoiceEmail(customerEmail, subject, htmlBody);
+        
+        // Update EmailSentAt in the database
+        invoice.EmailSentAt = DateTime.UtcNow;
+        await _salesInvoiceRepository.SaveChangesAsync(cancellationToken);
     }
 }

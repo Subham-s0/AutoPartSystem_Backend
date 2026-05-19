@@ -9,10 +9,14 @@ namespace VehiStock.Infrastructure.Services;
 public class CustomerPartRequestService : ICustomerPartRequestService
 {
     private readonly ICustomerPartRequestRepository _partRequestRepository;
+    private readonly IImageStorageService _imageStorageService;
 
-    public CustomerPartRequestService(ICustomerPartRequestRepository partRequestRepository)
+    public CustomerPartRequestService(
+        ICustomerPartRequestRepository partRequestRepository,
+        IImageStorageService imageStorageService)
     {
         _partRequestRepository = partRequestRepository;
+        _imageStorageService = imageStorageService;
     }
 
     public async Task<PartRequestResponse> CreatePartRequestAsync(
@@ -34,6 +38,18 @@ public class CustomerPartRequestService : ICustomerPartRequestService
             }
         }
 
+        string? photoUrl = null;
+        if (request.Photo != null)
+        {
+            // Uploaded file takes priority
+            photoUrl = await _imageStorageService.SaveImageAsync(request.Photo, "part-requests", cancellationToken);
+        }
+        else if (!string.IsNullOrWhiteSpace(request.PhotoUrl))
+        {
+            // Customer provided a direct URL
+            photoUrl = request.PhotoUrl.Trim();
+        }
+
         var partRequest = new PartRequest
         {
             CustomerId = customer.CustomerId,
@@ -41,6 +57,7 @@ public class CustomerPartRequestService : ICustomerPartRequestService
             RequestedPartName = request.RequestedPartName.Trim(),
             Quantity = request.Quantity,
             Details = string.IsNullOrWhiteSpace(request.Details) ? null : request.Details.Trim(),
+            PhotoUrl = photoUrl,
             Status = PartRequestStatus.Pending
         };
 
@@ -128,6 +145,7 @@ public class CustomerPartRequestService : ICustomerPartRequestService
             RequestedPartName = partRequest.RequestedPartName,
             Quantity = partRequest.Quantity,
             Details = partRequest.Details,
+            PhotoUrl = partRequest.PhotoUrl,
             Status = partRequest.Status.ToString(),
             RequestDate = partRequest.RequestDate
         };

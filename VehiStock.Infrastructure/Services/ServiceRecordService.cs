@@ -69,6 +69,42 @@ public class ServiceRecordService : IServiceRecordService
         return MapToResponse(record);
     }
 
+    public async Task<ServiceRecordResponse> CreateFromAppointmentAsync(string staffUserId, CreateServiceRecordFromAppointmentRequest request, CancellationToken cancellationToken = default)
+    {
+        var staff = await _serviceRecordRepository.GetStaffProfileByUserIdAsync(staffUserId, cancellationToken);
+        if (staff == null)
+            throw new InvalidOperationException("Staff profile not found.");
+
+        var appointment = await _serviceRecordRepository.GetAppointmentByIdAsync(request.AppointmentId, cancellationToken);
+        if (appointment == null)
+            throw new InvalidOperationException("Appointment not found.");
+        
+        if (appointment.Status != AppointmentStatus.Confirmed)
+            throw new InvalidOperationException("Appointment must be confirmed before creating a service record.");
+
+        var serviceRecord = new ServiceRecord
+        {
+            CustomerId = appointment.CustomerId,
+            VehicleId = appointment.VehicleId,
+            StaffMemberId = staff.StaffMemberId,
+            AppointmentId = appointment.AppointmentId,
+            ServiceDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+            Status = ServiceRecordStatus.ReadyForBilling, // Ready for invoicing right away!
+            Diagnosis = request.Diagnosis.Trim(),
+            WorkDone = request.WorkDone.Trim(),
+            LaborCharge = request.LaborCharge,
+            PartsCharge = request.PartsCharge,
+            Notes = request.Notes?.Trim()
+        };
+
+        var created = await _serviceRecordRepository.CreateAsync(serviceRecord, cancellationToken);
+        
+        // Let's assume updating the appointment is handled separately, 
+        // or we can add it to the repo if needed. For now, the endpoint will handle it if needed.
+        
+        return MapToResponse(created);
+    }
+
     private static bool IsReadyForBilling(ServiceRecord record)
     {
         return !string.IsNullOrWhiteSpace(record.Diagnosis) &&

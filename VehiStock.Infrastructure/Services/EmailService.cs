@@ -17,6 +17,11 @@ namespace VehiStock.Infrastructure.Services
 
         public async Task SendInvoiceEmail(string toEmail, string subject, string htmlBody)
         {
+            await SendEmailAsync(toEmail, subject, htmlBody);
+        }
+
+        public async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
+        {
             try
             {
                 var mail = new MailMessage();
@@ -41,7 +46,6 @@ namespace VehiStock.Infrastructure.Services
             }
             catch (Exception ex)
             {
-               
                 throw new Exception("SMTP FAILED: " + ex.Message);
             }
         }

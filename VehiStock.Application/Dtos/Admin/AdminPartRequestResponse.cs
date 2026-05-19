@@ -1,8 +1,12 @@
-namespace VehiStock.Application.Dtos.Customer;
+namespace VehiStock.Application.Dtos.Admin;
 
-public class PartRequestResponse
+public class AdminPartRequestResponse
 {
     public int PartRequestId { get; init; }
+    public int CustomerId { get; init; }
+    public string CustomerName { get; init; } = string.Empty;
+    public string CustomerEmail { get; init; } = string.Empty;
+    public string CustomerPhone { get; init; } = string.Empty;
     public int? VehicleId { get; init; }
     public string? VehicleNumber { get; init; }
     public string? VehicleMake { get; init; }
