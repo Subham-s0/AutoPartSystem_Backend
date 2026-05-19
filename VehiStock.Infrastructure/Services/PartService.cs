@@ -82,6 +82,7 @@ namespace VehiStock.Application.Services
                 PartCategoryId = defaultCategory.PartCategoryId,
                 PartCode = dto.PartCode,
                 PartName = dto.PartName,
+                Brand = dto.Brand,
                 Brand = dto.Brand ?? string.Empty,
                 UnitCost = dto.UnitCost,
                 UnitPrice = dto.UnitPrice,
@@ -104,6 +105,7 @@ namespace VehiStock.Application.Services
 
             existing.PartCode = dto.PartCode;
             existing.PartName = dto.PartName;
+            existing.Brand = dto.Brand;
             existing.Brand = dto.Brand ?? string.Empty;
             existing.UnitCost = dto.UnitCost;
             existing.UnitPrice = dto.UnitPrice;
@@ -128,4 +130,5 @@ namespace VehiStock.Application.Services
             return "Part deleted successfully.";
         }
     }
+}
 }
