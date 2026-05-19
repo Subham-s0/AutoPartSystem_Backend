@@ -28,7 +28,6 @@ packages/
 # Logs
 *.log
 logs/
-VehiStock/wwwroot/uploads/
 
 # Diagram files
 *.drawio
@@ -37,15 +36,9 @@ VehiStock/wwwroot/uploads/
 .env
 .env.*
 appsettings.Development.json
-
 VehiStock/appsettings.Development.json
 secrets.json
 
 # OS files
 Thumbs.db
 Desktop.ini
-*.docx
-
-# Node.js
-node_modules/
-

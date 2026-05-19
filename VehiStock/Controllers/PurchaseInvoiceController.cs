@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VehiStock.Application.DTOs;
 using VehiStock.Application.Interfaces.IRepositories;
+using VehiStock.Domain.Constants;
 using VehiStock.Entities;
 using VehiStock.Infrastructure.Persistance;
 
@@ -9,6 +11,7 @@ namespace VehiStock.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = RoleNames.Admin)]
     public class PurchaseInvoicesController : ControllerBase
     {
         private readonly IPurchaseInvoiceRepository _repository;
@@ -170,3 +173,4 @@ namespace VehiStock.Controllers
         }
     }
 }
+

@@ -121,6 +121,7 @@ builder.Services.AddCors(opt =>
 #region SERVICES & REPOSITORIES
 builder.Services.AddScoped<IUserAuthRepository, UserAuthRepository>();
 builder.Services.AddScoped<ICustomerProfileRepository, CustomerProfileRepository>();
+builder.Services.AddScoped<ICustomerDashboardRepository, CustomerDashboardRepository>();
 builder.Services.AddScoped<ICustomerHistoryRepository, CustomerHistoryRepository>();
 builder.Services.AddScoped<ICustomerServiceInvoiceRepository, CustomerServiceInvoiceRepository>();
 builder.Services.AddScoped<IPaymentServiceRepository, PaymentServiceRepository>();
@@ -141,6 +142,7 @@ builder.Services.AddScoped<IPurchaseInvoiceRepository, PurchaseInvoiceRepository
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
 builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+builder.Services.AddScoped<ICustomerDashboardService, CustomerDashboardService>();
 builder.Services.AddScoped<ICustomerHistoryService, CustomerHistoryService>();
 builder.Services.AddScoped<ICustomerServiceInvoiceService, CustomerServiceInvoiceService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();

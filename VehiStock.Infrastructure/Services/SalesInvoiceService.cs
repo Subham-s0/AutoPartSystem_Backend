@@ -23,6 +23,48 @@ public class SalesInvoiceService : ISalesInvoiceService
         _invoiceTemplateService = invoiceTemplateService;
     }
 
+    public async Task<string> SellPartAsync(
+        string userId,
+        SellPartRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var parts = await _salesInvoiceRepository.GetPartsByIdsAsync([request.PartId], cancellationToken);
+        if (parts.Count == 0)
+        {
+            throw new InvalidOperationException("Part was not found.");
+        }
+
+        var part = parts.First();
+        if (part.StockQty < request.Quantity)
+        {
+            throw new InvalidOperationException($"Insufficient stock for {part.PartName}.");
+        }
+
+        var lineTotal = part.UnitPrice * request.Quantity;
+        var invoiceRequest = new CreateSalesInvoiceRequest
+        {
+            CustomerId = request.CustomerId,
+            VehicleId = request.VehicleId,
+            InvoiceDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            DiscountPercent = 0m,
+            TaxAmount = 0m,
+            AmountPaid = lineTotal,
+            PaymentType = PaymentType.Khalti,
+            Items =
+            [
+                new CreateSalesInvoiceItemRequest
+                {
+                    PartId = request.PartId,
+                    Quantity = request.Quantity,
+                    DiscountAmount = 0m
+                }
+            ]
+        };
+
+        await CreateAsync(userId, invoiceRequest, cancellationToken);
+        return "Sale completed successfully";
+    }
+
     public async Task<SalesInvoiceLookupResponse> GetLookupAsync(CancellationToken cancellationToken = default)
     {
         var customers = await _salesInvoiceRepository.GetCustomersWithVehiclesAsync(cancellationToken);

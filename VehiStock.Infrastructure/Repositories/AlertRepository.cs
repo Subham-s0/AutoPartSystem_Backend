@@ -32,11 +32,11 @@ public class AlertRepository : IAlertRepository
             .Include(x => x.Vehicle)
             .Where(x =>
                 x.BalanceDue > 0 &&
-                x.CreditDueDate.HasValue &&
-                x.CreditDueDate.Value <= overdueBefore &&
                 (x.PaymentStatus == PaymentStatus.Unpaid ||
                  x.PaymentStatus == PaymentStatus.Partial ||
-                 x.PaymentStatus == PaymentStatus.Overdue))
+                 x.PaymentStatus == PaymentStatus.Overdue) &&
+                ((x.CreditDueDate.HasValue && x.CreditDueDate.Value <= overdueBefore) ||
+                 (!x.CreditDueDate.HasValue && x.InvoiceDate <= overdueBefore)))
             .OrderBy(x => x.CreditDueDate)
             .ToListAsync(cancellationToken);
     }

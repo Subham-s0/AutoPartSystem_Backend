@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehiStock.Application.DTOs;
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Application.Interfaces.IServices;
@@ -82,7 +82,7 @@ namespace VehiStock.Application.Services
                 PartCategoryId = defaultCategory.PartCategoryId,
                 PartCode = dto.PartCode,
                 PartName = dto.PartName,
-                Brand = dto.Brand,
+                Brand = dto.Brand ?? string.Empty,
                 UnitCost = dto.UnitCost,
                 UnitPrice = dto.UnitPrice,
                 StockQty = dto.StockQty,
@@ -104,7 +104,7 @@ namespace VehiStock.Application.Services
 
             existing.PartCode = dto.PartCode;
             existing.PartName = dto.PartName;
-            existing.Brand = dto.Brand;
+            existing.Brand = dto.Brand ?? string.Empty;
             existing.UnitCost = dto.UnitCost;
             existing.UnitPrice = dto.UnitPrice;
             existing.StockQty = dto.StockQty;
@@ -129,3 +129,4 @@ namespace VehiStock.Application.Services
         }
     }
 }
+
