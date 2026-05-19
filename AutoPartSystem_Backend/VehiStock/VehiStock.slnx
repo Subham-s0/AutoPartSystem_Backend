@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../VehiStock.Application/VehiStock.Application.csproj" Id="8eac6219-2e90-4dac-8318-26219c9b83c1" />
+  <Project Path="../VehiStock.Domain/VehiStock.Domain.csproj" Id="13233806-121f-4ae2-85f9-c6d8a7e23427" />
+  <Project Path="../VehiStock.Infrastructure/VehiStock.Infrastructure.csproj" Id="29e698f7-6aeb-4f08-bf36-4f0008749669" />
+  <Project Path="VehiStock.csproj" />
+</Solution>
