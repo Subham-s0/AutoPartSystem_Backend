@@ -141,7 +141,6 @@ namespace VehiStock.Controllers
                 PartCategoryId = defaultCategory.PartCategoryId,
                 PartCode = dto.PartCode,
                 PartName = dto.PartName,
-                Brand = dto.Brand,
                 Brand = dto.Brand ?? string.Empty,
                 PartPhotoUrl = photoUrl,
                 UnitCost = dto.UnitCost,
@@ -185,13 +184,13 @@ namespace VehiStock.Controllers
 
             existing.PartCode = dto.PartCode;
             existing.PartName = dto.PartName;
-            existing.Brand = dto.Brand;
             existing.Brand = dto.Brand ?? string.Empty;
             existing.UnitCost = dto.UnitCost;
             existing.UnitPrice = dto.UnitPrice;
             existing.StockQty = dto.StockQty;
             existing.MinimumStock = dto.MinimumStock;
             existing.IsActive = dto.IsActive;
+
 
             await _partRepository.UpdateAsync(existing);
 
@@ -247,4 +246,4 @@ namespace VehiStock.Controllers
         }
     }
 }
-}
+
