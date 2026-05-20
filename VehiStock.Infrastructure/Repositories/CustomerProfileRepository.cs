@@ -33,7 +33,6 @@ public class CustomerProfileRepository : ICustomerProfileRepository
     public async Task<PaginatedResponse<CustomerProfile>> GetCustomersForStaffAsync(string? search, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.CustomerProfiles
-            .AsNoTracking()
             .Include(x => x.User)
             .Include(x => x.Vehicles)
             .AsQueryable();

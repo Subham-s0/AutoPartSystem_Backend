@@ -8,7 +8,6 @@ public class CreateSalesInvoiceRequest
 {
     public int CustomerId { get; set; }
 
-
     public int VehicleId { get; set; }
 
     public DateOnly InvoiceDate { get; set; }
