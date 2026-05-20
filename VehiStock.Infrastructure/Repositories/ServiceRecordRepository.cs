@@ -19,8 +19,27 @@ public class ServiceRecordRepository : IServiceRecordRepository
         return _dbContext.ServiceRecords
             .Include(x => x.Vehicle)
             .Include(x => x.PartsUsed)
+                .ThenInclude(pu => pu.Part)
             .Include(x => x.ServiceInvoice)
+            .Include(x => x.Customer)
+                .ThenInclude(c => c.User)
+            .Include(x => x.StaffMember)
+                .ThenInclude(sm => sm.User)
             .SingleOrDefaultAsync(x => x.ServiceRecordId == serviceRecordId, cancellationToken);
+    }
+
+    public Task<List<ServiceRecord>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return _dbContext.ServiceRecords
+            .Include(x => x.Vehicle)
+            .Include(x => x.PartsUsed)
+                .ThenInclude(pu => pu.Part)
+            .Include(x => x.ServiceInvoice)
+            .Include(x => x.Customer)
+                .ThenInclude(c => c.User)
+            .Include(x => x.StaffMember)
+                .ThenInclude(sm => sm.User)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<ServiceRecord> CreateAsync(ServiceRecord record, CancellationToken cancellationToken = default)

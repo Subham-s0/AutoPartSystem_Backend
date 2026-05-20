@@ -105,6 +105,12 @@ public class ServiceRecordService : IServiceRecordService
         return MapToResponse(created);
     }
 
+    public async Task<List<ServiceRecordResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var records = await _serviceRecordRepository.GetAllAsync(cancellationToken);
+        return records.Select(MapToResponse).ToList();
+    }
+
     private static bool IsReadyForBilling(ServiceRecord record)
     {
         return !string.IsNullOrWhiteSpace(record.Diagnosis) &&
@@ -118,8 +124,11 @@ public class ServiceRecordService : IServiceRecordService
         {
             ServiceRecordId = record.ServiceRecordId,
             CustomerId = record.CustomerId,
+            CustomerName = record.Customer != null && record.Customer.User != null ? record.Customer.User.FullName : string.Empty,
             VehicleId = record.VehicleId,
+            VehicleNumber = record.Vehicle != null ? record.Vehicle.VehicleNumber : string.Empty,
             StaffMemberId = record.StaffMemberId,
+            StaffName = record.StaffMember != null && record.StaffMember.User != null ? record.StaffMember.User.FullName : string.Empty,
             AppointmentId = record.AppointmentId,
             ServiceDate = record.ServiceDate,
             Status = record.Status.ToString(),
@@ -128,7 +137,20 @@ public class ServiceRecordService : IServiceRecordService
             LaborCharge = record.LaborCharge,
             PartsCharge = record.PartsCharge,
             TotalCharge = record.TotalCharge,
-            Notes = record.Notes
+            Notes = record.Notes,
+            ServiceInvoiceId = record.ServiceInvoice != null ? record.ServiceInvoice.ServiceInvoiceId : null,
+            PartsUsed = record.PartsUsed != null
+                ? record.PartsUsed.Select(pu => new ServiceRecordPartDto
+                  {
+                      ServiceRecordPartId = pu.ServiceRecordPartId,
+                      PartId = pu.PartId,
+                      PartName = pu.Part != null ? pu.Part.PartName : string.Empty,
+                      Brand = pu.Part != null ? pu.Part.Brand : string.Empty,
+                      Quantity = pu.Quantity,
+                      UnitPrice = pu.UnitPrice,
+                      LineTotal = pu.LineTotal
+                  }).ToList()
+                : new List<ServiceRecordPartDto>()
         };
     }
 }

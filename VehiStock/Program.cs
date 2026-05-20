@@ -142,6 +142,8 @@ builder.Services.AddScoped<IAdminPartRequestRepository, AdminPartRequestReposito
 // Parts & Purchase Invoices
 builder.Services.AddScoped<IPartRepository, PartRepository>();
 builder.Services.AddScoped<IPurchaseInvoiceRepository, PurchaseInvoiceRepository>();
+builder.Services.AddScoped<IServiceRecordRepository, ServiceRecordRepository>();
+builder.Services.AddScoped<IServiceRecordService, ServiceRecordService>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
@@ -173,6 +175,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<InvoiceTemplateService>();
 builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
 builder.Services.AddScoped<IServiceInvoicePaymentService, ServiceInvoicePaymentService>();
+builder.Services.AddScoped<IServiceInvoiceService, ServiceInvoiceService>();
 builder.Services.AddScoped<ISalesInvoicePaymentService, SalesInvoicePaymentService>();
 builder.Services.AddHttpClient<IKhaltiClient, KhaltiClient>();
 #endregion

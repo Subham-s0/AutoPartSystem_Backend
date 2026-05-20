@@ -10,19 +10,78 @@ using System.Security.Claims;
 namespace VehiStock.Controllers;
 
 [ApiController]
-[Authorize(Roles = RoleNames.Staff)]
+[Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
 [Route("api/staff/service-records")]
 public class StaffServiceRecordsController : ControllerBase
 {
     private readonly IServiceRecordService _serviceRecordService;
     private readonly IStaffAppointmentService _staffAppointmentService;
+    private readonly IServiceInvoiceService _serviceInvoiceService;
 
     public StaffServiceRecordsController(
         IServiceRecordService serviceRecordService, 
-        IStaffAppointmentService staffAppointmentService)
+        IStaffAppointmentService staffAppointmentService,
+        IServiceInvoiceService serviceInvoiceService)
     {
         _serviceRecordService = serviceRecordService;
         _staffAppointmentService = staffAppointmentService;
+        _serviceInvoiceService = serviceInvoiceService;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<List<ServiceRecordResponse>>>> GetServiceRecords(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var records = await _serviceRecordService.GetAllAsync(cancellationToken);
+            return Ok(ApiResponse<List<ServiceRecordResponse>>.Ok(records, "Service records fetched successfully."));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<List<ServiceRecordResponse>>.Fail("An unexpected error occurred: " + ex.Message));
+        }
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<ApiResponse<ServiceRecordResponse>>> GetById(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var record = await _serviceRecordService.GetAsync(id, cancellationToken);
+            return Ok(ApiResponse<ServiceRecordResponse>.Ok(record, "Service record fetched successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ApiResponse<ServiceRecordResponse>.Fail(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<ServiceRecordResponse>.Fail("An unexpected error occurred: " + ex.Message));
+        }
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<ApiResponse<ServiceRecordResponse>>> Update(
+        int id,
+        [FromBody] UpdateServiceRecordRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var record = await _serviceRecordService.UpdateAsync(id, request, cancellationToken);
+            return Ok(ApiResponse<ServiceRecordResponse>.Ok(record, "Service record updated successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<ServiceRecordResponse>.Fail(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<ServiceRecordResponse>.Fail("An unexpected error occurred: " + ex.Message));
+        }
     }
 
     [HttpPost("from-appointment")]
@@ -50,6 +109,26 @@ public class StaffServiceRecordsController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, ApiResponse<ServiceRecordResponse>.Fail("An unexpected error occurred: " + ex.Message));
+        }
+    }
+
+    [HttpPost("{id:int}/invoice")]
+    public async Task<ActionResult<ApiResponse<ServiceInvoiceResponse>>> GenerateInvoice(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _serviceInvoiceService.CreateAsync(id, cancellationToken);
+            return Ok(ApiResponse<ServiceInvoiceResponse>.Ok(response, "Service invoice generated successfully."));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<ServiceInvoiceResponse>.Fail(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<ServiceInvoiceResponse>.Fail("An unexpected error occurred: " + ex.Message));
         }
     }
 }

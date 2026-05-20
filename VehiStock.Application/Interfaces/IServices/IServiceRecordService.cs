@@ -10,5 +10,7 @@ public interface IServiceRecordService
     
     Task<ServiceRecordResponse> GetAsync(int serviceRecordId, CancellationToken cancellationToken = default);
 
+    Task<List<ServiceRecordResponse>> GetAllAsync(CancellationToken cancellationToken = default);
+
     Task<ServiceRecordResponse> CreateFromAppointmentAsync(string staffUserId, CreateServiceRecordFromAppointmentRequest request, CancellationToken cancellationToken = default);
 }
