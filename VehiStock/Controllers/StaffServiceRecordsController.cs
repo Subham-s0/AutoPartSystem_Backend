@@ -17,15 +17,33 @@ public class StaffServiceRecordsController : ControllerBase
     private readonly IServiceRecordService _serviceRecordService;
     private readonly IStaffAppointmentService _staffAppointmentService;
     private readonly IServiceInvoiceService _serviceInvoiceService;
+    private readonly ISalesInvoiceService _salesInvoiceService;
 
     public StaffServiceRecordsController(
         IServiceRecordService serviceRecordService, 
         IStaffAppointmentService staffAppointmentService,
-        IServiceInvoiceService serviceInvoiceService)
+        IServiceInvoiceService serviceInvoiceService,
+        ISalesInvoiceService salesInvoiceService)
     {
         _serviceRecordService = serviceRecordService;
         _staffAppointmentService = staffAppointmentService;
         _serviceInvoiceService = serviceInvoiceService;
+        _salesInvoiceService = salesInvoiceService;
+    }
+
+    [HttpGet("lookups")]
+    public async Task<ActionResult<ApiResponse<SalesInvoiceLookupResponse>>> GetLookups(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _salesInvoiceService.GetLookupAsync(cancellationToken);
+            return Ok(ApiResponse<SalesInvoiceLookupResponse>.Ok(response, "Service record lookups fetched successfully."));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<SalesInvoiceLookupResponse>.Fail("An unexpected error occurred: " + ex.Message));
+        }
     }
 
     [HttpGet]
