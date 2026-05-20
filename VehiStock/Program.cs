@@ -18,6 +18,10 @@ using VehiStock.Infrastructure.Settings;
 using VehiStock.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load machine-specific settings (like local DB password) from local JSON file
+builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
+
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
 
 #region DB
@@ -331,6 +335,8 @@ using (var scope = app.Services.CreateScope())
             }
         }
     }
+
+    await DataSeeder.SeedDataAsync(dbContext);
 }
 #endregion
 
