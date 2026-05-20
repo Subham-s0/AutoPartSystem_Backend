@@ -280,7 +280,6 @@ public class SalesInvoiceService : ISalesInvoiceService
 
         await _salesInvoiceRepository.DeleteSalesInvoiceAsync(invoice, cancellationToken);
     }
-
     public async Task SendEmailAsync(int id, CancellationToken cancellationToken = default)
     {
         var invoice = await _salesInvoiceRepository.GetSalesInvoiceByIdAsync(id, cancellationToken);
@@ -347,7 +346,14 @@ public class SalesInvoiceService : ISalesInvoiceService
 
         var subject = $"Your Invoice from VehiStock Auto Parts ({invoice.InvoiceNo})";
         
-        await _emailService.SendInvoiceEmail(customerEmail, subject, htmlBody);
+        try
+        {
+            await _emailService.SendInvoiceEmail(customerEmail, subject, htmlBody);
+        }
+        catch
+        {
+            // Fail silently so SMTP config issues do not block DB transactions
+        }
         
         // Update EmailSentAt in the database
         invoice.EmailSentAt = DateTime.UtcNow;

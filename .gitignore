@@ -37,6 +37,7 @@ logs/
 .env.*
 appsettings.Development.json
 appsettings.local.json
+VehiStock/appsettings.Development.json
 secrets.json
 
 # OS files
