@@ -14,9 +14,9 @@
 
         public List<MonthlyPurchaseDto> MonthlyPurchases { get; set; } = new();
 
-        public List<LowStockPartDto> LowStockItems { get; set; } = new();
+        public List<LowStockPartAnalyticsDto> LowStockItems { get; set; } = new();
 
-        public List<RecentActivityDto> RecentActivities { get; set; } = new();
+        public List<RecentActivityAnalyticsDto> RecentActivities { get; set; } = new();
     }
 
     public class MonthlyPurchaseDto
@@ -26,14 +26,14 @@
         public decimal Amount { get; set; }
     }
 
-    public class LowStockPartDto
+    public class LowStockPartAnalyticsDto
     {
         public string PartName { get; set; } = string.Empty;
 
         public int StockQty { get; set; }
     }
 
-    public class RecentActivityDto
+    public class RecentActivityAnalyticsDto
     {
         public string Activity { get; set; } = string.Empty;
 

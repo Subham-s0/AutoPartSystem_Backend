@@ -45,30 +45,30 @@ namespace VehiStock.Application.Services
 
             var lowStockItems = await _context.Parts
                 .Where(p => p.StockQty <= p.MinimumStock)
-                .Select(p => new LowStockPartDto
+                .Select(p => new LowStockPartAnalyticsDto
                 {
                     PartName = p.PartName,
                     StockQty = p.StockQty
                 })
                 .ToListAsync();
 
-            var recentActivities = new List<RecentActivityDto>
+            var recentActivities = new List<RecentActivityAnalyticsDto>
             {
-                new RecentActivityDto
+                new RecentActivityAnalyticsDto
                 {
                     Activity = "Vendor records updated",
                     Module = "Vendor",
                     Status = "Completed"
                 },
 
-                new RecentActivityDto
+                new RecentActivityAnalyticsDto
                 {
                     Activity = "Stock quantities updated",
                     Module = "Inventory",
                     Status = "Completed"
                 },
 
-                new RecentActivityDto
+                new RecentActivityAnalyticsDto
                 {
                     Activity = "Purchase invoice generated",
                     Module = "Invoice",
