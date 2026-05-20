@@ -11,7 +11,7 @@ namespace VehiStock.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
     public class PurchaseInvoicesController : ControllerBase
     {
         private readonly IPurchaseInvoiceRepository _repository;
@@ -133,6 +133,10 @@ namespace VehiStock.Controllers
 
                 part.StockQty += itemDto.Quantity;
                 part.UnitCost = itemDto.UnitCost;
+                if (itemDto.UnitPrice > 0)
+                {
+                    part.UnitPrice = itemDto.UnitPrice;
+                }
 
                 var lineTotal = itemDto.Quantity * itemDto.UnitCost;
                 subtotal += lineTotal;

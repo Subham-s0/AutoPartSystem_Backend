@@ -157,7 +157,7 @@ public class CustomerProfileService : ICustomerProfileService
             Type = nameof(ServiceInvoice),
             Id = x.ServiceInvoiceId,
             Date = x.ServiceRecord != null ? x.ServiceRecord.ServiceDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc) : DateTime.UtcNow,
-            Description = $"Service invoice SRV-INV-{x.ServiceInvoiceId}",
+            Description = $"Service invoice #{x.ServiceInvoiceId}",
             Amount = x.TotalAmount,
             Status = x.PaymentStatus.ToString()
         });
@@ -165,9 +165,9 @@ public class CustomerProfileService : ICustomerProfileService
         return new VehiStock.Application.Dtos.Management.StaffCustomerHistoryResponse
         {
             CustomerId = customer.CustomerId,
-            FullName = customer.User?.FullName ?? string.Empty,
-            Email = customer.User?.Email ?? string.Empty,
-            PhoneNumber = customer.User?.PhoneNumber ?? string.Empty,
+            FullName = customer.User.FullName,
+            Email = customer.User.Email ?? string.Empty,
+            PhoneNumber = customer.User.PhoneNumber,
             TotalSpent = customer.SalesInvoices.Sum(x => x.TotalAmount) + customer.ServiceInvoices.Sum(x => x.TotalAmount),
             HistoryItems = salesHistory
                 .Concat(serviceHistory)

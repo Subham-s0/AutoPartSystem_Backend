@@ -8,7 +8,7 @@ using VehiStock.Domain.Constants;
 namespace VehiStock.Controllers;
 
 [ApiController]
-[Authorize(Roles = RoleNames.Admin)]
+[Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
 [Route("api/admin/part-requests")]
 public class AdminPartRequestsController : ControllerBase
 {

@@ -6,15 +6,11 @@ using VehiStock.Application.Interfaces.IServices;
 using VehiStock.Domain.Constants;
 using VehiStock.Entities;
 using System.Security.Claims;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System;
 
 namespace VehiStock.Controllers;
 
 [ApiController]
-[Authorize(Roles = RoleNames.Staff)]
+[Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
 [Route("api/staff/service-records")]
 public class StaffServiceRecordsController : ControllerBase
 {
@@ -35,22 +31,9 @@ public class StaffServiceRecordsController : ControllerBase
         _salesInvoiceService = salesInvoiceService;
     }
 
-    [HttpGet]
-    public async Task<ActionResult<ApiResponse<IReadOnlyCollection<ServiceRecordResponse>>>> GetServiceRecords(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var response = await _serviceRecordService.GetAllAsync(cancellationToken);
-            return Ok(ApiResponse<IReadOnlyCollection<ServiceRecordResponse>>.Ok(response, "Service records retrieved successfully."));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ApiResponse<IReadOnlyCollection<ServiceRecordResponse>>.Fail("An unexpected error occurred: " + ex.Message));
-        }
-    }
-
     [HttpGet("lookups")]
-    public async Task<ActionResult<ApiResponse<SalesInvoiceLookupResponse>>> GetLookups(CancellationToken cancellationToken = default)
+    public async Task<ActionResult<ApiResponse<SalesInvoiceLookupResponse>>> GetLookups(
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -63,23 +46,34 @@ public class StaffServiceRecordsController : ControllerBase
         }
     }
 
-    [HttpPost]
-    public async Task<ActionResult<ApiResponse<ServiceRecordResponse>>> CreateServiceRecord(
-        [FromBody] CreateServiceRecordRequest request,
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<List<ServiceRecordResponse>>>> GetServiceRecords(
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrWhiteSpace(userId))
-                return Unauthorized(ApiResponse<ServiceRecordResponse>.Fail("User not authenticated"));
+            var records = await _serviceRecordService.GetAllAsync(cancellationToken);
+            return Ok(ApiResponse<List<ServiceRecordResponse>>.Ok(records, "Service records fetched successfully."));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<List<ServiceRecordResponse>>.Fail("An unexpected error occurred: " + ex.Message));
+        }
+    }
 
-            var response = await _serviceRecordService.CreateAsync(userId, request, cancellationToken);
-            return Ok(ApiResponse<ServiceRecordResponse>.Ok(response, "Service record created successfully."));
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<ApiResponse<ServiceRecordResponse>>> GetById(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var record = await _serviceRecordService.GetAsync(id, cancellationToken);
+            return Ok(ApiResponse<ServiceRecordResponse>.Ok(record, "Service record fetched successfully."));
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ApiResponse<ServiceRecordResponse>.Fail(ex.Message));
+            return NotFound(ApiResponse<ServiceRecordResponse>.Fail(ex.Message));
         }
         catch (Exception ex)
         {
@@ -88,15 +82,15 @@ public class StaffServiceRecordsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<ApiResponse<ServiceRecordResponse>>> UpdateServiceRecord(
+    public async Task<ActionResult<ApiResponse<ServiceRecordResponse>>> Update(
         int id,
         [FromBody] UpdateServiceRecordRequest request,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var response = await _serviceRecordService.UpdateAsync(id, request, cancellationToken);
-            return Ok(ApiResponse<ServiceRecordResponse>.Ok(response, "Service record updated successfully."));
+            var record = await _serviceRecordService.UpdateAsync(id, request, cancellationToken);
+            return Ok(ApiResponse<ServiceRecordResponse>.Ok(record, "Service record updated successfully."));
         }
         catch (InvalidOperationException ex)
         {
@@ -135,6 +129,7 @@ public class StaffServiceRecordsController : ControllerBase
             return StatusCode(500, ApiResponse<ServiceRecordResponse>.Fail("An unexpected error occurred: " + ex.Message));
         }
     }
+
     [HttpPost("{id:int}/invoice")]
     public async Task<ActionResult<ApiResponse<ServiceInvoiceResponse>>> GenerateInvoice(
         int id,

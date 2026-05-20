@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using VehiStock.Application.Dtos.Staff;
 using VehiStock.Application.Interfaces.IRepositories;
 using VehiStock.Application.Interfaces.IServices;
@@ -39,74 +34,6 @@ public class ServiceRecordService : IServiceRecordService
         return MapToResponse(created);
     }
 
-
-    public async Task<ServiceRecordResponse> CreateAsync(string staffUserId, CreateServiceRecordRequest request, CancellationToken cancellationToken = default)
-    {
-        var staff = await _serviceRecordRepository.GetStaffProfileByUserIdAsync(staffUserId, cancellationToken);
-        if (staff == null)
-            throw new InvalidOperationException("Staff profile not found.");
-
-        var customer = await _serviceRecordRepository.GetCustomerAsync(request.CustomerId, cancellationToken);
-        if (customer == null)
-            throw new InvalidOperationException("Customer not found.");
-
-        var vehicle = await _serviceRecordRepository.GetVehicleForCustomerAsync(request.CustomerId, request.VehicleId, cancellationToken);
-        if (vehicle == null)
-            throw new InvalidOperationException("Vehicle not found for this customer.");
-
-        var partIds = request.PartsUsed.Select(x => x.PartId).Distinct().ToList();
-        var parts = (await _serviceRecordRepository.GetPartsByIdsAsync(partIds, cancellationToken)).ToDictionary(x => x.PartId);
-        if (parts.Count != partIds.Count)
-            throw new InvalidOperationException("One or more parts were not found.");
-
-        var serviceRecord = new ServiceRecord
-        {
-            CustomerId = request.CustomerId,
-            VehicleId = request.VehicleId,
-            StaffMemberId = staff.StaffMemberId,
-            ServiceDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
-            Status = ServiceRecordStatus.Open,
-            Diagnosis = request.Diagnosis.Trim(),
-            WorkDone = request.WorkDone.Trim(),
-            LaborCharge = request.LaborCharge,
-            Notes = request.Notes?.Trim()
-        };
-
-        decimal partsCharge = 0m;
-        foreach (var item in request.PartsUsed)
-        {
-            var part = parts[item.PartId];
-            part.DecreaseStock(item.Quantity);
-
-            var lineTotal = part.UnitPrice * item.Quantity;
-            partsCharge += lineTotal;
-
-            serviceRecord.PartsUsed.Add(new ServiceRecordPart
-            {
-                PartId = part.PartId,
-                Quantity = item.Quantity,
-                UnitPrice = part.UnitPrice,
-                LineTotal = lineTotal
-            });
-        }
-
-        serviceRecord.PartsCharge = partsCharge;
-        serviceRecord.TotalCharge = request.LaborCharge + partsCharge;
-
-        if (!string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<ServiceRecordStatus>(request.Status, true, out var parsedStatus))
-        {
-            serviceRecord.Status = parsedStatus;
-        }
-        else if (IsReadyForBilling(serviceRecord))
-        {
-            serviceRecord.Status = ServiceRecordStatus.ReadyForBilling;
-        }
-
-        var created = await _serviceRecordRepository.CreateAsync(serviceRecord, cancellationToken);
-        return MapToResponse(created);
-    }
-
-
     public async Task<ServiceRecordResponse> UpdateAsync(int serviceRecordId, UpdateServiceRecordRequest request, CancellationToken cancellationToken = default)
     {
         var record = await _serviceRecordRepository.GetByIdAsync(serviceRecordId, cancellationToken);
@@ -118,53 +45,11 @@ public class ServiceRecordService : IServiceRecordService
         record.Diagnosis = request.Diagnosis.Trim();
         record.WorkDone = request.WorkDone.Trim();
         record.LaborCharge = request.LaborCharge;
+        record.PartsCharge = request.PartsCharge;
         record.Notes = request.Notes?.Trim();
 
-        // 1. Revert previous parts stock
-        foreach (var oldPart in record.PartsUsed)
-        {
-            if (oldPart.Part != null)
-            {
-                oldPart.Part.IncreaseStock(oldPart.Quantity);
-            }
-        }
-
-        // 2. Clear old parts
-        record.PartsUsed.Clear();
-
-        // 3. Fetch new parts
-        var partIds = request.PartsUsed.Select(x => x.PartId).Distinct().ToList();
-        var parts = (await _serviceRecordRepository.GetPartsByIdsAsync(partIds, cancellationToken)).ToDictionary(x => x.PartId);
-        if (parts.Count != partIds.Count)
-            throw new InvalidOperationException("One or more parts were not found.");
-
-        decimal partsCharge = 0m;
-        foreach (var item in request.PartsUsed)
-        {
-            var part = parts[item.PartId];
-            part.DecreaseStock(item.Quantity);
-
-            var lineTotal = part.UnitPrice * item.Quantity;
-            partsCharge += lineTotal;
-
-            record.PartsUsed.Add(new ServiceRecordPart
-            {
-                ServiceRecordId = serviceRecordId,
-                PartId = part.PartId,
-                Quantity = item.Quantity,
-                UnitPrice = part.UnitPrice,
-                LineTotal = lineTotal
-            });
-        }
-
-        record.PartsCharge = partsCharge;
-        record.TotalCharge = request.LaborCharge + partsCharge;
-
-        if (!string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<ServiceRecordStatus>(request.Status, true, out var parsedStatus))
-        {
-            record.Status = parsedStatus;
-        }
-        else if (record.Status == ServiceRecordStatus.Open && IsReadyForBilling(record))
+        // Auto-transition to ReadyForBilling if all required fields are filled
+        if (record.Status == ServiceRecordStatus.Open && IsReadyForBilling(record))
         {
             record.Status = ServiceRecordStatus.ReadyForBilling;
         }
@@ -204,7 +89,7 @@ public class ServiceRecordService : IServiceRecordService
             StaffMemberId = staff.StaffMemberId,
             AppointmentId = appointment.AppointmentId,
             ServiceDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
-            Status = ServiceRecordStatus.ReadyForBilling,
+            Status = ServiceRecordStatus.ReadyForBilling, // Ready for invoicing right away!
             Diagnosis = request.Diagnosis.Trim(),
             WorkDone = request.WorkDone.Trim(),
             LaborCharge = request.LaborCharge,
@@ -213,14 +98,19 @@ public class ServiceRecordService : IServiceRecordService
         };
 
         var created = await _serviceRecordRepository.CreateAsync(serviceRecord, cancellationToken);
+        
+        // Let's assume updating the appointment is handled separately, 
+        // or we can add it to the repo if needed. For now, the endpoint will handle it if needed.
+        
         return MapToResponse(created);
     }
 
-    public async Task<IReadOnlyCollection<ServiceRecordResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<List<ServiceRecordResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var list = await _serviceRecordRepository.GetListAsync(cancellationToken);
-        return list.Select(MapToResponse).ToList();
+        var records = await _serviceRecordRepository.GetAllAsync(cancellationToken);
+        return records.Select(MapToResponse).ToList();
     }
+
     private static bool IsReadyForBilling(ServiceRecord record)
     {
         return !string.IsNullOrWhiteSpace(record.Diagnosis) &&
@@ -234,11 +124,11 @@ public class ServiceRecordService : IServiceRecordService
         {
             ServiceRecordId = record.ServiceRecordId,
             CustomerId = record.CustomerId,
-            CustomerName = record.Customer?.User?.FullName ?? "Unknown Customer",
+            CustomerName = record.Customer != null && record.Customer.User != null ? record.Customer.User.FullName : string.Empty,
             VehicleId = record.VehicleId,
-            VehicleNumber = record.Vehicle?.VehicleNumber ?? "Unknown Vehicle",
+            VehicleNumber = record.Vehicle != null ? record.Vehicle.VehicleNumber : string.Empty,
             StaffMemberId = record.StaffMemberId,
-            StaffName = record.StaffMember?.User?.FullName ?? "Unknown Staff",
+            StaffName = record.StaffMember != null && record.StaffMember.User != null ? record.StaffMember.User.FullName : string.Empty,
             AppointmentId = record.AppointmentId,
             ServiceDate = record.ServiceDate,
             Status = record.Status.ToString(),
@@ -248,17 +138,19 @@ public class ServiceRecordService : IServiceRecordService
             PartsCharge = record.PartsCharge,
             TotalCharge = record.TotalCharge,
             Notes = record.Notes,
-            ServiceInvoiceId = record.ServiceInvoice?.ServiceInvoiceId,
-            PartsUsed = record.PartsUsed.Select(x => new ServiceRecordPartResponse
-            {
-                ServiceRecordPartId = x.ServiceRecordPartId,
-                PartId = x.PartId,
-                PartName = x.Part?.PartName ?? "Unknown Part",
-                Brand = x.Part?.Brand ?? string.Empty,
-                Quantity = x.Quantity,
-                UnitPrice = x.UnitPrice,
-                LineTotal = x.LineTotal
-            }).ToList()
+            ServiceInvoiceId = record.ServiceInvoice != null ? record.ServiceInvoice.ServiceInvoiceId : null,
+            PartsUsed = record.PartsUsed != null
+                ? record.PartsUsed.Select(pu => new ServiceRecordPartDto
+                  {
+                      ServiceRecordPartId = pu.ServiceRecordPartId,
+                      PartId = pu.PartId,
+                      PartName = pu.Part != null ? pu.Part.PartName : string.Empty,
+                      Brand = pu.Part != null ? pu.Part.Brand : string.Empty,
+                      Quantity = pu.Quantity,
+                      UnitPrice = pu.UnitPrice,
+                      LineTotal = pu.LineTotal
+                  }).ToList()
+                : new List<ServiceRecordPartDto>()
         };
     }
 }

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text;
@@ -139,9 +138,12 @@ builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
 builder.Services.AddScoped<IStaffReportRepository, StaffReportRepository>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IAdminPartRequestRepository, AdminPartRequestRepository>();
-builder.Services.AddScoped<IServiceRecordRepository, ServiceRecordRepository>();
+
+// Parts & Purchase Invoices
 builder.Services.AddScoped<IPartRepository, PartRepository>();
 builder.Services.AddScoped<IPurchaseInvoiceRepository, PurchaseInvoiceRepository>();
+builder.Services.AddScoped<IServiceRecordRepository, ServiceRecordRepository>();
+builder.Services.AddScoped<IServiceRecordService, ServiceRecordService>();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
@@ -159,20 +161,21 @@ builder.Services.AddScoped<IStaffManagementService, StaffManagementService>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
 builder.Services.AddScoped<IStaffReportService, StaffReportService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
-builder.Services.AddScoped<IStaffDashboardService, StaffDashboardService>();
-builder.Services.AddScoped<IStaffAppointmentService, StaffAppointmentService>();
-builder.Services.AddScoped<IAdminPartRequestService, AdminPartRequestService>();
-builder.Services.AddScoped<IServiceRecordService, ServiceRecordService>();
-builder.Services.AddScoped<IServiceInvoiceService, ServiceInvoiceService>();
+
+// Parts, Purchase Invoices, Analytics, & Dashboard
 builder.Services.AddScoped<IPartService, PartService>();
 builder.Services.AddScoped<IPurchaseInvoiceService, PurchaseInvoiceService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IStaffDashboardService, StaffDashboardService>();
+builder.Services.AddScoped<IStaffAppointmentService, StaffAppointmentService>();
+builder.Services.AddScoped<IAdminPartRequestService, AdminPartRequestService>();
 
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<InvoiceTemplateService>();
 builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
 builder.Services.AddScoped<IServiceInvoicePaymentService, ServiceInvoicePaymentService>();
+builder.Services.AddScoped<IServiceInvoiceService, ServiceInvoiceService>();
 builder.Services.AddScoped<ISalesInvoicePaymentService, SalesInvoicePaymentService>();
 builder.Services.AddHttpClient<IKhaltiClient, KhaltiClient>();
 #endregion
@@ -258,6 +261,7 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var seedSettings = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdminSeedSettings>>().Value;
+
     try
     {
         await dbContext.Database.MigrateAsync();
@@ -266,6 +270,7 @@ using (var scope = app.Services.CreateScope())
     {
         Console.WriteLine($"Migration pre-check warning: {ex.Message}");
     }
+
     await RoleSeeder.SeedAsync(roleManager);
     await AdminSeeder.SeedAsync(roleManager, userManager, seedSettings);
 

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace VehiStock.Application.Dtos.Staff;
 
 public class ServiceRecordResponse
@@ -22,5 +19,16 @@ public class ServiceRecordResponse
     public decimal TotalCharge { get; init; }
     public string? Notes { get; init; }
     public int? ServiceInvoiceId { get; init; }
-    public List<ServiceRecordPartResponse> PartsUsed { get; init; } = [];
+    public List<ServiceRecordPartDto> PartsUsed { get; init; } = new();
+}
+
+public class ServiceRecordPartDto
+{
+    public int ServiceRecordPartId { get; init; }
+    public int PartId { get; init; }
+    public string PartName { get; init; } = string.Empty;
+    public string Brand { get; init; } = string.Empty;
+    public int Quantity { get; init; }
+    public decimal UnitPrice { get; init; }
+    public decimal LineTotal { get; init; }
 }
