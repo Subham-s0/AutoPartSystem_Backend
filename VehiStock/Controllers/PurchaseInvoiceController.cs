@@ -11,7 +11,7 @@ namespace VehiStock.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
     public class PurchaseInvoicesController : ControllerBase
     {
         private readonly IPurchaseInvoiceRepository _repository;

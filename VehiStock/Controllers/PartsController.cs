@@ -13,7 +13,7 @@ namespace VehiStock.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Staff}")]
     public class PartsController : ControllerBase
     {
         private readonly IPartRepository _partRepository;
@@ -109,6 +109,39 @@ namespace VehiStock.Controllers
         }
 
         [HttpPost]
+        [Consumes("application/json")]
+        public async Task<IActionResult> CreateFromJson([FromBody] CreatePartDtoJson dto)
+        {
+            var defaultCategory = await _context.PartCategories
+                .FirstOrDefaultAsync(c => c.Name == "Default");
+
+            if (defaultCategory == null)
+            {
+                defaultCategory = new PartCategory { Name = "Default" };
+                _context.PartCategories.Add(defaultCategory);
+                await _context.SaveChangesAsync();
+            }
+
+            var part = new Part
+            {
+                PartCategoryId = defaultCategory.PartCategoryId,
+                PartCode = dto.PartCode,
+                PartName = dto.PartName,
+                Brand = dto.Brand ?? string.Empty,
+                PartPhotoUrl = null,
+                UnitCost = dto.UnitCost,
+                UnitPrice = dto.UnitPrice,
+                StockQty = dto.StockQty,
+                MinimumStock = dto.MinimumStock,
+                IsActive = true
+            };
+
+            await _partRepository.AddAsync(part);
+            return Ok(new { message = "Part created successfully" });
+        }
+
+        [HttpPost]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] CreatePartDto dto)
         {
             var defaultCategory = await _context.PartCategories
@@ -119,7 +152,6 @@ namespace VehiStock.Controllers
                 defaultCategory = new PartCategory
                 {
                     Name = "Default",
-                    
                 };
 
                 _context.PartCategories.Add(defaultCategory);
@@ -156,6 +188,29 @@ namespace VehiStock.Controllers
         }
 
         [HttpPut]
+        [Consumes("application/json")]
+        public async Task<IActionResult> UpdateFromJson([FromBody] UpdatePartDtoJson dto)
+        {
+            var existing = await _partRepository.GetByIdAsync(dto.PartId);
+
+            if (existing == null)
+                return NotFound();
+
+            existing.PartCode = dto.PartCode;
+            existing.PartName = dto.PartName;
+            existing.Brand = dto.Brand ?? string.Empty;
+            existing.UnitCost = dto.UnitCost;
+            existing.UnitPrice = dto.UnitPrice;
+            existing.StockQty = dto.StockQty;
+            existing.MinimumStock = dto.MinimumStock;
+            existing.IsActive = dto.IsActive;
+
+            await _partRepository.UpdateAsync(existing);
+            return Ok(new { message = "Part updated successfully" });
+        }
+
+        [HttpPut]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update([FromForm] UpdatePartDto dto)
         {
             var existing = await _partRepository.GetByIdAsync(dto.PartId);
@@ -190,7 +245,6 @@ namespace VehiStock.Controllers
             existing.StockQty = dto.StockQty;
             existing.MinimumStock = dto.MinimumStock;
             existing.IsActive = dto.IsActive;
-
 
             await _partRepository.UpdateAsync(existing);
 
@@ -244,6 +298,32 @@ namespace VehiStock.Controllers
                 file.OpenReadStream,
                 file.CopyToAsync);
         }
+    }
+
+    public class CreatePartDtoJson
+    {
+        public int PartCategoryId { get; set; }
+        public string PartCode { get; set; } = string.Empty;
+        public string PartName { get; set; } = string.Empty;
+        public string? Brand { get; set; }
+        public decimal UnitCost { get; set; }
+        public decimal UnitPrice { get; set; }
+        public int StockQty { get; set; }
+        public int MinimumStock { get; set; }
+    }
+
+    public class UpdatePartDtoJson
+    {
+        public int PartId { get; set; }
+        public int PartCategoryId { get; set; }
+        public string PartCode { get; set; } = string.Empty;
+        public string PartName { get; set; } = string.Empty;
+        public string? Brand { get; set; }
+        public decimal UnitCost { get; set; }
+        public decimal UnitPrice { get; set; }
+        public int StockQty { get; set; }
+        public int MinimumStock { get; set; }
+        public bool IsActive { get; set; }
     }
 }
 
