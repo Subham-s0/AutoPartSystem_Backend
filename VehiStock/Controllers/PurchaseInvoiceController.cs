@@ -133,6 +133,10 @@ namespace VehiStock.Controllers
 
                 part.StockQty += itemDto.Quantity;
                 part.UnitCost = itemDto.UnitCost;
+                if (itemDto.UnitPrice > 0)
+                {
+                    part.UnitPrice = itemDto.UnitPrice;
+                }
 
                 var lineTotal = itemDto.Quantity * itemDto.UnitCost;
                 subtotal += lineTotal;
