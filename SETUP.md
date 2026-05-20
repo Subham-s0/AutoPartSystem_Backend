@@ -38,19 +38,19 @@ VehiStockDb
 
 You can create it in pgAdmin, or let EF create it during `database update`.
 
-5. Update the PostgreSQL connection string in:
+5. Set up your local configurations:
 
-```text
-Backend/VehiStock/appsettings.json
-```
+- Copy `Backend/VehiStock/appsettings.local.Example.json` and rename it to `Backend/VehiStock/appsettings.local.json`.
 
-Find:
+- Open your new `Backend/VehiStock/appsettings.local.json` and update the database password in the connection string:
+  ```json
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=VehiStockDb;Username=postgres;Password=YOUR_DATABASE_PASSWORD"
+  }
+  ```
+  Replace `YOUR_DATABASE_PASSWORD` with your local PostgreSQL password. You can also configure your own local email settings or Khalti/Google API keys here if needed.
 
-```text
-YOUR_PASSWORD_HERE
-```
-
-and replace it with your local PostgreSQL password.
+- **Note**: `appsettings.local.json` is gitignored and will not be pushed to Git. Always use this file for your local credentials so they are not overwritten when pulling from `main` or merging branches.
 
 6. Apply the database migrations:
 
